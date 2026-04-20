@@ -554,25 +554,42 @@
             // Touch pinch-to-zoom and pan
             let initialDistance = 0;
             let initialScale = 1;
+            let initialPanX = 0;
+            let initialPanY = 0;
+            let pinchCenterX = 0;
+            let pinchCenterY = 0;
             let lastTouchX = 0;
             let lastTouchY = 0;
 
             viewport.addEventListener('touchstart', (e) => {
                 if (e.touches.length === 2) {
+                    // Pinch start
                     initialDistance = Math.hypot(
                         e.touches[0].clientX - e.touches[1].clientX,
                         e.touches[0].clientY - e.touches[1].clientY
                     );
                     initialScale = scale;
-                } else if (e.touches.length === 1 && scale > 1) {
-                    isPanning = true;
-                    lastTouchX = e.touches[0].clientX;
-                    lastTouchY = e.touches[0].clientY;
+                    initialPanX = panX;
+                    initialPanY = panY;
+
+                    // Get pinch center
+                    const rect = viewport.getBoundingClientRect();
+                    pinchCenterX = ((e.touches[0].clientX + e.touches[1].clientX) / 2) - rect.left;
+                    pinchCenterY = ((e.touches[0].clientY + e.touches[1].clientY) / 2) - rect.top;
+
+                    isPanning = false;
+                } else if (e.touches.length === 1) {
+                    // Single finger - always allow panning when zoomed
+                    if (scale > 1) {
+                        isPanning = true;
+                        lastTouchX = e.touches[0].clientX;
+                        lastTouchY = e.touches[0].clientY;
+                    }
                 }
             }, { passive: true });
 
             viewport.addEventListener('touchmove', (e) => {
-                if (e.touches.length === 2) {
+                if (e.touches.length === 2 && initialDistance > 0) {
                     e.preventDefault();
                     const currentDistance = Math.hypot(
                         e.touches[0].clientX - e.touches[1].clientX,
@@ -581,11 +598,25 @@
                     const newScale = Math.max(minScale, Math.min(maxScale, initialScale * (currentDistance / initialDistance)));
 
                     if (newScale !== scale) {
+                        const rect = viewport.getBoundingClientRect();
+                        const centerX = rect.width / 2;
+                        const centerY = rect.height / 2;
+
+                        // Calculate point under pinch center in unscaled coords
+                        const pointX = (pinchCenterX - centerX - initialPanX) / initialScale;
+                        const pointY = (pinchCenterY - centerY - initialPanY) / initialScale;
+
                         scale = newScale;
+
+                        // Adjust pan to keep pinch center stable
+                        panX = pinchCenterX - centerX - pointX * scale;
+                        panY = pinchCenterY - centerY - pointY * scale;
+
                         clampPan();
                         updateTransform();
                     }
                 } else if (e.touches.length === 1 && isPanning) {
+                    e.preventDefault();
                     const deltaX = e.touches[0].clientX - lastTouchX;
                     const deltaY = e.touches[0].clientY - lastTouchY;
                     lastTouchX = e.touches[0].clientX;
@@ -598,22 +629,42 @@
                 }
             }, { passive: false });
 
-            viewport.addEventListener('touchend', () => {
-                isPanning = false;
-                initialDistance = 0;
+            viewport.addEventListener('touchend', (e) => {
+                if (e.touches.length === 0) {
+                    isPanning = false;
+                    initialDistance = 0;
+                } else if (e.touches.length === 1) {
+                    // Switched from pinch to single finger
+                    initialDistance = 0;
+                    if (scale > 1) {
+                        isPanning = true;
+                        lastTouchX = e.touches[0].clientX;
+                        lastTouchY = e.touches[0].clientY;
+                    }
+                }
             });
 
             // Double-tap to reset zoom
             let lastTap = 0;
+            let lastTapX = 0;
+            let lastTapY = 0;
             viewport.addEventListener('touchend', (e) => {
-                const now = Date.now();
-                if (now - lastTap < 300 && e.touches.length === 0) {
-                    scale = 1;
-                    panX = 0;
-                    panY = 0;
-                    updateTransform();
+                if (e.touches.length === 0 && e.changedTouches.length === 1) {
+                    const now = Date.now();
+                    const touch = e.changedTouches[0];
+                    const dist = Math.hypot(touch.clientX - lastTapX, touch.clientY - lastTapY);
+
+                    // Only reset if double-tap is in same spot (within 50px)
+                    if (now - lastTap < 300 && dist < 50) {
+                        scale = 1;
+                        panX = 0;
+                        panY = 0;
+                        updateTransform();
+                    }
+                    lastTap = now;
+                    lastTapX = touch.clientX;
+                    lastTapY = touch.clientY;
                 }
-                lastTap = now;
             });
 
             // Double-click to reset zoom
