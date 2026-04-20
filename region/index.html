@@ -294,6 +294,42 @@
             }
         }
 
+        /* Mobile portrait - WIP banner below map */
+        @media (max-width: 768px) and (orientation: portrait) {
+            .map-viewport {
+                display: flex;
+                flex-direction: column;
+            }
+            .map-container {
+                order: 1;
+            }
+            .region-title {
+                order: 0;
+                z-index: 50;
+            }
+            .wip-banner {
+                position: relative;
+                order: 2;
+                width: 100%;
+                clip-path: none;
+                background: #1a1a1a;
+                flex-direction: row;
+                flex-wrap: wrap;
+                justify-content: space-around;
+                padding: 12px 16px;
+            }
+            .wip-section {
+                flex: 1;
+                min-width: 120px;
+            }
+            .wip-section:first-child {
+                border-bottom: none;
+                padding-bottom: 0;
+                border-right: 1px solid rgba(255, 255, 255, 0.3);
+                padding-right: 16px;
+            }
+        }
+
         /* Touch device support */
         @media (hover: none) {
             .hotspot:active {
