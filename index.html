@@ -18,6 +18,7 @@
             margin: 0;
             min-height: 100vh;
             width: 120px;
+            flex-shrink: 0;
         }
         .tab {
             padding: 14px 16px;
@@ -56,6 +57,51 @@
             margin-top: 20px;
             font-size: 24px;
             color: #333;
+        }
+
+        /* Tablet styles */
+        @media (max-width: 768px) {
+            body {
+                flex-direction: column;
+            }
+            .sidebar {
+                flex-direction: row;
+                width: 100%;
+                min-height: auto;
+            }
+            .tab {
+                flex: 1;
+                text-align: center;
+            }
+            .content {
+                min-height: calc(100vh - 48px);
+            }
+            .home-content {
+                min-height: calc(100vh - 48px);
+            }
+            img {
+                max-width: 90%;
+            }
+            p {
+                font-size: 20px;
+            }
+        }
+
+        /* Mobile styles */
+        @media (max-width: 480px) {
+            .tab {
+                padding: 12px 10px;
+                font-size: 14px;
+            }
+            .content {
+                padding: 15px;
+            }
+            img {
+                max-width: 95%;
+            }
+            p {
+                font-size: 18px;
+            }
         }
     </style>
 </head>
