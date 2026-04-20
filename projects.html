@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Projects - Tiff</title>
+    <style>
+        /* Base styles */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f8f9fa;
+            color: #333;
+        }
+
+        /* Navigation tabs */
+        .tabs {
+            display: flex;
+            background-color: #f1f1f1;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .tab {
+            padding: 14px 16px;
+            cursor: pointer;
+            background-color: #f1f1f1;
+            border: none;
+            outline: none;
+            transition: 0.3s;
+            text-decoration: none;
+            color: #333;
+        }
+
+        .tab:hover {
+            background-color: #ddd;
+        }
+
+        .tab.active {
+            background-color: #ccc;
+        }
+
+        /* Main layout */
+        .projects-container {
+            display: flex;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            gap: 40px;
+            min-height: calc(100vh - 46px);
+            align-items: center;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            flex: 0 0 300px;
+            padding: 20px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            height: fit-content;
+            position: sticky;
+            top: 66px;
+        }
+
+        .sidebar h1 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 2em;
+        }
+
+        .sidebar p {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+
+        /* Projects grid */
+        .projects-grid {
+            flex: 1;
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 30px;
+        }
+        
+        /* First three cards span 2 columns each */
+        .project-card:nth-child(1),
+        .project-card:nth-child(2),
+        .project-card:nth-child(3) {
+            grid-column: span 2;
+        }
+        
+        /* Last two cards - center them by starting at column 2 */
+        .project-card:nth-child(4) {
+            grid-column: 2 / span 2;
+        }
+        
+        .project-card:nth-child(5) {
+            grid-column: 4 / span 2;
+        }
+
+        /* Project cards */
+        .project-card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .project-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 12px 30px rgba(0,0,0,0.15);
+        }
+
+        .project-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            transform: translateX(-100%);
+            transition: transform 0.3s ease;
+        }
+
+        .project-card:hover::before {
+            transform: translateX(0);
+        }
+
+        .project-icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 15px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .project-icon img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .project-name {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+
+        .tech-stack {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .tech-badge {
+            padding: 4px 10px;
+            background-color: #e9ecef;
+            border-radius: 15px;
+            font-size: 0.75em;
+            color: #666;
+            transition: background-color 0.2s ease;
+        }
+
+        .project-card:hover .tech-badge {
+            background-color: #dee2e6;
+        }
+
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal-content {
+            background-color: white;
+            padding: 40px;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+            animation: slideIn 0.3s ease;
+            position: relative;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .close-button {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 30px;
+            color: #999;
+            cursor: pointer;
+            transition: color 0.2s;
+            background: none;
+            border: none;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+        }
+
+        .close-button:hover {
+            color: #333;
+            background-color: #f0f0f0;
+        }
+
+        .modal-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .modal-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 20px;
+            overflow: hidden;
+        }
+
+        .modal-icon img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .modal-title {
+            font-size: 2em;
+            color: #2c3e50;
+        }
+
+        .modal-description {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 25px;
+        }
+
+        .features-section {
+            margin-bottom: 25px;
+        }
+
+        .features-section h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+
+        .features-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .features-list li {
+            padding: 8px 0;
+            padding-left: 25px;
+            position: relative;
+            color: #666;
+        }
+
+        .features-list li::before {
+            content: '✓';
+            position: absolute;
+            left: 0;
+            color: #667eea;
+            font-weight: bold;
+        }
+
+        .tech-section {
+            margin-bottom: 30px;
+        }
+
+        .tech-section h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+
+        .modal-tech-stack {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .modal-tech-badge {
+            padding: 8px 16px;
+            background-color: #e9ecef;
+            border-radius: 20px;
+            font-size: 0.9em;
+            color: #666;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .modal-button {
+            flex: 1;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            text-decoration: none;
+            text-align: center;
+            display: inline-block;
+        }
+
+        .modal-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .modal-button.primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .modal-button.secondary {
+            background-color: #e9ecef;
+            color: #333;
+        }
+
+        /* Responsive design */
+        @media (max-width: 1200px) {
+            .projects-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .projects-container {
+                flex-direction: column;
+                padding: 15px;
+            }
+
+            .sidebar {
+                flex: none;
+                position: static;
+                margin-bottom: 30px;
+            }
+
+            .projects-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
+            .modal-content {
+                padding: 30px 20px;
+                width: 95%;
+            }
+
+            .modal-header {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .modal-icon {
+                margin-right: 0;
+                margin-bottom: 15px;
+            }
+
+            .modal-buttons {
+                flex-direction: column;
+            }
+        }
+
+        /* Accessibility */
+        .project-card:focus,
+        .modal-button:focus,
+        .close-button:focus,
+        .tab:focus {
+            outline: 3px solid #667eea;
+            outline-offset: 2px;
+        }
+
+        /* Skip to content link */
+        .skip-link {
+            position: absolute;
+            top: -40px;
+            left: 0;
+            background: #667eea;
+            color: white;
+            padding: 8px;
+            text-decoration: none;
+            z-index: 100;
+        }
+
+        .skip-link:focus {
+            top: 0;
+        }
+    </style>
+</head>
+<body>
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+    
+    <nav class="tabs" role="navigation" aria-label="Main navigation">
+        <a href="index.html" class="tab">Home</a>
+        <a href="projects.html" class="tab active" aria-current="page">Projects</a>
+        <a href="contact.html" class="tab">Contact</a>
+    </nav>
+    
+    <main id="main-content" class="projects-container">
+        <aside class="sidebar">
+            <h1>My Projects</h1>
+            <p>Welcome to a showcase of all of the projects I've worked on! This is a collection of web applications, tools, and games I've built using various technologies.</p>
+            <p>Each project represented a unique challenge and learning experience for me, and has allowed me to demonstrate my skills in full-stack development, UI design, and complex problem-solving.</p>
+            <p>Try clicking on any project card to learn more about the project - it's features, technical stack and implementation details.</p>
+        </aside>
+
+        <section class="projects-grid" role="region" aria-label="Project cards">
+            <!-- Project 1: Tasklyst -->
+            <article class="project-card" tabindex="0" role="button" aria-label="Tasklyst project" data-project="tasklyst">
+                <div class="project-icon">
+                    <img src="icons/tasklyst.png" alt="Tasklyst icon" onerror="this.style.display='none'; this.parentElement.innerHTML='TL';">
+                </div>
+                <h2 class="project-name">Tasklyst</h2>
+                <div class="tech-stack">
+                    <span class="tech-badge">React</span>
+                    <span class="tech-badge">TypeScript</span>
+                    <span class="tech-badge">Vite</span>
+                    <span class="tech-badge">Axios</span>
+                    <span class="tech-badge">.NET 8</span>
+                    <span class="tech-badge">C#</span>
+                </div>
+            </article>
+
+            <!-- Project 2: Breezio -->
+            <article class="project-card" tabindex="0" role="button" aria-label="Breezio project" data-project="breezio">
+                <div class="project-icon">
+                    <img src="icons/breezio.png" alt="Breezio icon" onerror="this.style.display='none'; this.parentElement.innerHTML='B';">
+                </div>
+                <h2 class="project-name">Breezio</h2>
+                <div class="tech-stack">
+                    <span class="tech-badge">Vue.js</span>
+                    <span class="tech-badge">Node.js</span>
+                    <span class="tech-badge">Express</span>
+                </div>
+            </article>
+
+            <!-- Project 3: Plateful -->
+            <article class="project-card" tabindex="0" role="button" aria-label="Plateful project" data-project="plateful">
+                <div class="project-icon">
+                    <img src="icons/plateful.png" alt="Plateful icon" onerror="this.style.display='none'; this.parentElement.innerHTML='P';">
+                </div>
+                <h2 class="project-name">Plateful</h2>
+                <div class="tech-stack">
+                    <span class="tech-badge">React</span>
+                    <span class="tech-badge">Node.js</span>
+                    <span class="tech-badge">MongoDB</span>
+                </div>
+            </article>
+
+            <!-- Project 4: QuizBlitz -->
+            <article class="project-card" tabindex="0" role="button" aria-label="QuizBlitz project" data-project="quizblitz">
+                <div class="project-icon">
+                    <img src="icons/quizblitz.png" alt="QuizBlitz icon" onerror="this.style.display='none'; this.parentElement.innerHTML='QB';">
+                </div>
+                <h2 class="project-name">QuizBlitz</h2>
+                <div class="tech-stack">
+                    <span class="tech-badge">Python</span>
+                    <span class="tech-badge">Tkinter</span>
+                </div>
+            </article>
+
+            <!-- Project 5: Code Defender -->
+            <article class="project-card" tabindex="0" role="button" aria-label="Code Defender project" data-project="codedefender">
+                <div class="project-icon">
+                    <img src="icons/codedefender.png" alt="Code Defender icon" onerror="this.style.display='none'; this.parentElement.innerHTML='CD';">
+                </div>
+                <h2 class="project-name">Code Defender</h2>
+                <div class="tech-stack">
+                    <span class="tech-badge">Java</span>
+                    <span class="tech-badge">Console</span>
+                </div>
+            </article>
+        </section>
+    </main>
+
+    <!-- Modal -->
+    <div id="projectModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+        <div class="modal-content">
+            <button class="close-button" aria-label="Close modal">&times;</button>
+            <div class="modal-header">
+                <div class="modal-icon" id="modalIcon"></div>
+                <h2 class="modal-title" id="modalTitle"></h2>
+            </div>
+            <p class="modal-description" id="modalDescription"></p>
+            
+            <div class="features-section">
+                <h3>Key Features</h3>
+                <ul class="features-list" id="modalFeatures"></ul>
+            </div>
+            
+            <div class="tech-section">
+                <h3>Tech Stack</h3>
+                <div class="modal-tech-stack" id="modalTechStack"></div>
+            </div>
+            
+            <div class="modal-buttons">
+                <a href="#" class="modal-button primary" id="viewProjectBtn" target="_blank" rel="noopener noreferrer">View Project</a>
+                <a href="#" class="modal-button secondary" id="viewCodeBtn" target="_blank" rel="noopener noreferrer">View Code</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Project data
+        const projectData = {
+            tasklyst: {
+                name: 'Tasklyst',
+                icon: 'TL',
+                description: 'A task management and productivity platform designed to help teams collaborate efficiently. Tasklyst combines project boards and smart automation to streamline workflows and boost productivity.',
+                features: [
+                    'Task creation, editing, and deletion',
+                    'Drag-and-drop task organization',
+                    'User authentication with JWT',
+                    'Task categories and priority levels',
+                    'Search and filter functionality',
+                    'RESTful API with .NET 8',
+                ],
+                techStack: ['React', 'TypeScript', 'Vite', 'Axios', '.NET 8', 'C#'],
+                projectLink: '#',
+                codeLink: 'https://github.com/cynderquil/tasklyst'
+            },
+            breezio: {
+                name: 'Breezio',
+                icon: 'B',
+                description: 'An intelligent weather application that not only provides accurate forecasts but also recommends activities based on current and upcoming weather conditions. Perfect for planning your day with weather-appropriate suggestions.',
+                features: [
+                    'Detailed weather forecasts with hourly updates',
+                    'Activity recommendations based on weather',
+                    'Weather alerts and notifications',
+                    'Historical weather data visualization',
+                    'Multiple location tracking'
+                ],
+                techStack: ['Vue.js', 'Node.js', 'Express'],
+                projectLink: '#',
+                codeLink: '#'
+            },
+            plateful: {
+                name: 'Plateful',
+                icon: 'P',
+                description: 'A vibrant recipe sharing community where food enthusiasts can discover, share, and discuss their favorite recipes. Features social elements like following chefs, rating recipes, and creating custom cookbooks.',
+                features: [
+                    'Recipe creation with step-by-step instructions',
+                    'Social features: follow, like, comment',
+                    'Advanced recipe search and filtering',
+                    'Personal cookbook collections',
+                    'Meal planning calendar'
+                ],
+                techStack: ['React', 'Node.js', 'MongoDB'],
+                projectLink: '#',
+                codeLink: '#'
+            },
+            quizblitz: {
+                name: 'QuizBlitz',
+                icon: 'QB',
+                description: 'A single-player quiz game built with Python and Tkinter. Features multiple choice questions across different categories with a timer for each question. Perfect for testing your knowledge while learning GUI development.',
+                features: [
+                    'Single-player quiz game',
+                    'Multiple choice questions',
+                    'Score tracking',
+                    'Different categories',
+                    'Timer for each question',
+                    'High score saved to local file',
+                    'Simple GUI interface'
+                ],
+                techStack: ['Python', 'Tkinter'],
+                projectLink: '#',
+                codeLink: '#'
+            },
+            codedefender: {
+                name: 'Code Defender',
+                icon: 'CD',
+                description: 'A console-based tower defense game built in Java. Features ASCII graphics, turn-based gameplay, and strategic tower placement. A great project for learning game logic and console I/O handling.',
+                features: [
+                    'ASCII-based game board',
+                    'Turn-based gameplay',
+                    'Simple tower placement',
+                    'Wave-based enemies',
+                    'Resource management',
+                    'Save/load game state',
+                    'Console menu system'
+                ],
+                techStack: ['Java', 'Console'],
+                projectLink: '#',
+                codeLink: '#'
+            }
+        };
+
+        // Modal elements
+        const modal = document.getElementById('projectModal');
+        const modalIcon = document.getElementById('modalIcon');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalDescription = document.getElementById('modalDescription');
+        const modalFeatures = document.getElementById('modalFeatures');
+        const modalTechStack = document.getElementById('modalTechStack');
+        const viewProjectBtn = document.getElementById('viewProjectBtn');
+        const viewCodeBtn = document.getElementById('viewCodeBtn');
+        const closeBtn = document.querySelector('.close-button');
+
+        // Add click event listeners to project cards
+        document.querySelectorAll('.project-card').forEach(card => {
+            card.addEventListener('click', () => openModal(card.dataset.project));
+            
+            // Add keyboard support
+            card.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    openModal(card.dataset.project);
+                }
+            });
+        });
+
+        // Open modal function
+        function openModal(projectKey) {
+            const project = projectData[projectKey];
+            if (!project) return;
+
+            // Update modal content
+            modalIcon.innerHTML = `<img src="icons/${projectKey}.png" alt="${project.name} icon" onerror="this.style.display='none'; this.parentElement.innerHTML='${project.icon}';">`;
+            modalTitle.textContent = project.name;
+            modalDescription.textContent = project.description;
+
+            // Update features list
+            modalFeatures.innerHTML = '';
+            project.features.forEach(feature => {
+                const li = document.createElement('li');
+                li.textContent = feature;
+                modalFeatures.appendChild(li);
+            });
+
+            // Update tech stack
+            modalTechStack.innerHTML = '';
+            project.techStack.forEach(tech => {
+                const badge = document.createElement('span');
+                badge.className = 'modal-tech-badge';
+                badge.textContent = tech;
+                modalTechStack.appendChild(badge);
+            });
+
+            // Update buttons
+            viewProjectBtn.href = project.projectLink;
+            viewCodeBtn.href = project.codeLink;
+
+            // Show modal
+            modal.classList.add('show');
+            modal.focus();
+
+            // Trap focus in modal
+            trapFocus(modal);
+        }
+
+        // Close modal function
+        function closeModal() {
+            modal.classList.remove('show');
+            // Remove focus from all cards
+            document.querySelectorAll('.project-card').forEach(card => {
+                card.blur();
+            });
+        }
+
+        // Close button event
+        closeBtn.addEventListener('click', closeModal);
+
+        // Close on outside click
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                closeModal();
+            }
+        });
+
+        // Close on Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && modal.classList.contains('show')) {
+                closeModal();
+            }
+        });
+
+        // Focus trap function for accessibility
+        function trapFocus(element) {
+            const focusableElements = element.querySelectorAll(
+                'a[href], button, [tabindex]:not([tabindex="-1"])'
+            );
+            const firstFocusableElement = focusableElements[0];
+            const lastFocusableElement = focusableElements[focusableElements.length - 1];
+
+            element.addEventListener('keydown', (e) => {
+                if (e.key === 'Tab') {
+                    if (e.shiftKey) {
+                        if (document.activeElement === firstFocusableElement) {
+                            lastFocusableElement.focus();
+                            e.preventDefault();
+                        }
+                    } else {
+                        if (document.activeElement === lastFocusableElement) {
+                            firstFocusableElement.focus();
+                            e.preventDefault();
+                        }
+                    }
+                }
+            });
+
+            firstFocusableElement.focus();
+        }
+    </script>
+</body>
+</html>

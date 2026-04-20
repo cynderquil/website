@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Region - Tiff</title>
+    <style>
+        @font-face {
+            font-family: 'Pokemon Gen3';
+            src: url('pokemon-emerald.otf.woff2') format('woff2');
+            font-weight: normal;
+            font-style: normal;
+        }
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            display: flex;
+            background-color: black;
+        }
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            background-color: #f1f1f1;
+            padding: 0;
+            margin: 0;
+            min-height: 100vh;
+            width: 120px;
+            flex-shrink: 0;
+        }
+        .tab {
+            padding: 14px 16px;
+            cursor: pointer;
+            background-color: #f1f1f1;
+            border: none;
+            outline: none;
+            transition: 0.3s;
+            text-decoration: none;
+            color: #333;
+        }
+        .tab:hover {
+            background-color: #ddd;
+        }
+        .tab.active {
+            background-color: #ccc;
+        }
+        .content {
+            display: flex;
+            justify-content: center;
+            flex: 1;
+            min-height: 100vh;
+        }
+        .map-container {
+            position: relative;
+            width: 100%;
+            max-width: 1440px;
+        }
+        .region-img {
+            width: 100%;
+            height: auto;
+            image-rendering: pixelated;
+            display: block;
+        }
+
+        /* Hotspot styles */
+        .hotspot {
+            position: absolute;
+            cursor: pointer;
+            transform: translate(-50%, -50%);
+            transition: transform 0.2s ease;
+        }
+        .hotspot:hover {
+            transform: translate(-50%, -50%) scale(1.3);
+            z-index: 10;
+        }
+        .hotspot img {
+            display: block;
+            image-rendering: pixelated;
+        }
+
+        /* Marker sizes */
+        .hotspot.city img {
+            width: 48px;
+            height: auto;
+        }
+        .hotspot.big-city-horizontal img {
+            width: 95px;
+            height: auto;
+        }
+        .hotspot.big-city-vertical img {
+            width: 48px;
+            height: auto;
+        }
+        .hotspot.town img {
+            width: 48px;
+            height: auto;
+        }
+        .hotspot.landmark img {
+            width: 48px;
+            height: auto;
+        }
+
+        /* Tooltip */
+        .hotspot .tooltip {
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 14px;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease;
+            z-index: 100;
+            margin-bottom: 8px;
+        }
+        .hotspot .tooltip::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 6px solid transparent;
+            border-top-color: rgba(0, 0, 0, 0.9);
+        }
+        .hotspot:hover .tooltip {
+            opacity: 1;
+        }
+
+        /* WIP Banner */
+        .wip-banner {
+            position: absolute;
+            top: 0;
+            left: 0;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(4px);
+            color: white;
+            padding: 12px 16px;
+            font-size: 18px;
+            font-family: 'Pokemon Gen3', cursive;
+            z-index: 50;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            align-items: flex-start;
+            box-sizing: border-box;
+            border-bottom-right-radius: 12px;
+        }
+        .wip-banner h4 {
+            margin: 0 0 4px 0;
+            font-size: 18px;
+            font-family: 'Pokemon Gen3', cursive;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: rgba(255, 255, 255, 0.7);
+        }
+        .wip-banner ul {
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+        .wip-banner li {
+            color: rgba(255, 255, 255, 0.9);
+            line-height: 1.4;
+        }
+        .wip-section {
+            display: flex;
+            flex-direction: column;
+        }
+        .wip-section:first-child {
+            padding-bottom: 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <a href="index.html" class="tab">Home</a>
+        <a href="region.html" class="tab active">Region</a>
+    </div>
+
+    <div class="content">
+        <div class="map-container">
+            <img src="region.PNG" alt="Region" class="region-img">
+
+            <!-- WIP Banner -->
+            <div class="wip-banner">
+                <div class="wip-section">
+                    <h4>Locations To Add</h4>
+                    <ul>
+                        <li>Sheliana City</li>
+                        <li>Limelock Island</li>
+                        <li>Loftshore City</li>
+                        <li>Citridock Village</li>
+                    </ul>
+                </div>
+                <div class="wip-section">
+                    <h4>Landmarks To Add</h4>
+                    <ul>
+                        <li>Corsola Cradle</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- 9 Landmarks -->
+            <div class="hotspot landmark" style="left: 75%; top: 42.5%;">
+                <img src="landmark.PNG" alt="">
+                <span class="tooltip">Fernhill Forest</span>
+            </div>
+            <div class="hotspot landmark" style="left: 48.4%; top: 37.5%;">
+                <img src="landmark.PNG" alt="">
+                <span class="tooltip">Coastline Cave</span>
+            </div>
+            <div class="hotspot landmark" style="left: 48.4%; top: 12.5%;">
+                <img src="landmark.PNG" alt="">
+                <span class="tooltip">Nimbus Jungle</span>
+            </div>
+            <div class="hotspot landmark" style="left: 28.4%; top: 7.5%;">
+                <img src="landmark.PNG" alt="">
+                <span class="tooltip">Copperdale Ruins</span>
+            </div>
+            <div class="hotspot landmark" style="left: 11.7%; top: 57.5%;">
+                <img src="landmark.PNG" alt="">
+                <span class="tooltip">Dawndune Outpost</span>
+            </div>
+            <div class="hotspot landmark" style="left: 5%; top: 57.5%;">
+                <img src="landmark.PNG" alt="">
+                <span class="tooltip">Roseburn Island</span>
+            </div>
+            <div class="hotspot landmark" style="left: 45%; top: 77.4%;">
+                <img src="landmark.PNG" alt="">
+                <span class="tooltip">Devon Industrial Complex</span>
+            </div>
+            <div class="hotspot landmark" style="left: 18.4%; top: 72.5%;">
+                <img src="landmark.PNG" alt="">
+                <span class="tooltip">Dustspire Canyon</span>
+            </div>
+            <div class="hotspot landmark" style="left: 78.4%; top: 77.5%;">
+                <img src="landmark.PNG" alt="">
+                <span class="tooltip">Unnamed Cherry Forest</span>
+            </div>
+            <div class="hotspot landmark" style="left: 91.7%; top: 77.5%;">
+                <img src="landmark.PNG" alt="">
+                <span class="tooltip">Mt. Azuric</span>
+            </div>
+
+            <!-- 5 Towns -->
+            <div class="hotspot town" style="left: 78.4%; top: 42.5%;">
+                <img src="town.PNG" alt="">
+                <span class="tooltip">Fernhill Town</span>
+            </div>
+            <div class="hotspot town" style="left: 48.4%; top: 22.5%;">
+                <img src="town.PNG" alt="">
+                <span class="tooltip">Tingrove Town</span>
+            </div>
+            <div class="hotspot town" style="left: 15%; top: 12.5%;">
+                <img src="town.PNG" alt="">
+                <span class="tooltip">Unnamed Town</span>
+            </div>
+            <div class="hotspot town" style="left: 78.4%; top: 62.5%;">
+                <img src="town.PNG" alt="">
+                <span class="tooltip">Unnamed Town</span>
+            </div>
+            <div class="hotspot town" style="left: 91.7%; top: 17.5%;">
+                <img src="town.PNG" alt="">
+                <span class="tooltip">Crystopia Town</span>
+            </div>
+
+            <!-- 6 Normal Cities -->
+            <div class="hotspot city" style="left: 78.4%; top: 27.5%;">
+                <img src="city.PNG" alt="">
+                <span class="tooltip">Artemisia City</span>
+            </div>
+            <div class="hotspot city" style="left: 48.4%; top: 42.5%;">
+                <img src="city.PNG" alt="">
+                <span class="tooltip">Maripine Resort</span>
+            </div>
+            <div class="hotspot city" style="left: 25%; top: 32.5%;">
+                <img src="city.PNG" alt="">
+                <span class="tooltip">Stormaegis City</span>
+            </div>
+            <div class="hotspot city" style="left: 41.7%; top: 82.5%;">
+                <img src="city.PNG" alt="">
+                <span class="tooltip">Vacala Lake</span>
+            </div>
+            <div class="hotspot city" style="left: 65%; top: 57.5%;">
+                <img src="city.PNG" alt="">
+                <span class="tooltip">Seagress City</span>
+            </div>
+
+            <!-- 3 Horizontal Big Cities -->
+            <div class="hotspot big-city-horizontal" style="left: 63.4%; top: 42.5%;">
+                <img src="big_city_horizontal.PNG" alt="">
+                <span class="tooltip">Irideae City</span>
+            </div>
+            <div class="hotspot big-city-horizontal" style="left: 30%; top: 12.5%;">
+                <img src="big_city_horizontal.PNG" alt="">
+                <span class="tooltip">Copperdale City</span>
+            </div>
+            <div class="hotspot big-city-horizontal" style="left: 23.4%; top: 57.5%;">
+                <img src="big_city_horizontal.PNG" alt="">
+                <span class="tooltip">Sonodusk City</span>
+            </div>
+
+            <!-- 2 Vertical Big Cities -->
+            <div class="hotspot big-city-vertical" style="left: 88.4%; top: 80%;">
+                <img src="big_city_vertical.PNG" alt="">
+                <span class="tooltip">Cerise City</span>
+            </div>
+            <div class="hotspot big-city-vertical" style="left: 15%; top: 90%;">
+                <img src="big_city_vertical.PNG" alt="">
+                <span class="tooltip">Palmeadow City</span>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
