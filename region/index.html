@@ -7,7 +7,7 @@
     <style>
         @font-face {
             font-family: 'Pokemon Gen3';
-            src: url('pokemon-emerald.otf.woff2') format('woff2');
+            src: url('../pokemon-emerald.otf.woff2') format('woff2');
             font-weight: normal;
             font-style: normal;
         }
@@ -49,17 +49,17 @@
             align-items: flex-start;
             flex: 1;
             min-height: 100vh;
-            overflow: hidden;
         }
         .map-viewport {
             position: relative;
             width: 100%;
             max-width: 1440px;
             overflow: hidden;
-            touch-action: none;
+            touch-action: pan-y pinch-zoom;
         }
         .map-viewport.zoomed {
             cursor: grab;
+            touch-action: none;
         }
         .map-viewport.zoomed:active {
             cursor: grabbing;
@@ -308,8 +308,8 @@
 </head>
 <body>
     <div class="sidebar">
-        <a href="index.html" class="tab">Home</a>
-        <a href="region.html" class="tab active">Region</a>
+        <a href="/" class="tab">Home</a>
+        <a href="/region" class="tab active">Region</a>
     </div>
 
     <div class="content">
@@ -337,115 +337,115 @@
             </div>
 
             <div class="map-container">
-                <img src="region.PNG" alt="Region" class="region-img">
+                <img src="../region.PNG" alt="Region" class="region-img">
 
             <!-- 9 Landmarks -->
             <div class="hotspot landmark" style="left: 75%; top: 42.5%;">
-                <img src="landmark.PNG" alt="">
+                <img src="../landmark.PNG" alt="">
                 <span class="tooltip">Fernhill Forest</span>
             </div>
             <div class="hotspot landmark" style="left: 48.4%; top: 37.5%;">
-                <img src="landmark.PNG" alt="">
+                <img src="../landmark.PNG" alt="">
                 <span class="tooltip">Coastline Cave</span>
             </div>
             <div class="hotspot landmark" style="left: 48.4%; top: 12.5%;">
-                <img src="landmark.PNG" alt="">
+                <img src="../landmark.PNG" alt="">
                 <span class="tooltip">Nimbus Jungle</span>
             </div>
             <div class="hotspot landmark" style="left: 28.4%; top: 7.5%;">
-                <img src="landmark.PNG" alt="">
+                <img src="../landmark.PNG" alt="">
                 <span class="tooltip">Copperdale Ruins</span>
             </div>
             <div class="hotspot landmark" style="left: 11.7%; top: 57.5%;">
-                <img src="landmark.PNG" alt="">
+                <img src="../landmark.PNG" alt="">
                 <span class="tooltip">Dawndune Outpost</span>
             </div>
             <div class="hotspot landmark" style="left: 5%; top: 57.5%;">
-                <img src="landmark.PNG" alt="">
+                <img src="../landmark.PNG" alt="">
                 <span class="tooltip">Roseburn Island</span>
             </div>
             <div class="hotspot landmark" style="left: 45%; top: 77.4%;">
-                <img src="landmark.PNG" alt="">
+                <img src="../landmark.PNG" alt="">
                 <span class="tooltip">Devon Industrial Complex</span>
             </div>
             <div class="hotspot landmark" style="left: 18.4%; top: 72.5%;">
-                <img src="landmark.PNG" alt="">
+                <img src="../landmark.PNG" alt="">
                 <span class="tooltip">Dustspire Canyon</span>
             </div>
             <div class="hotspot landmark" style="left: 78.3%; top: 77.5%;">
-                <img src="landmark.PNG" alt="">
+                <img src="../landmark.PNG" alt="">
                 <span class="tooltip">Unnamed Cherry Forest</span>
             </div>
             <div class="hotspot landmark" style="left: 91.7%; top: 12.5%;">
-                <img src="landmark.PNG" alt="">
+                <img src="../landmark.PNG" alt="">
                 <span class="tooltip">Mt. Azuric</span>
             </div>
 
             <!-- 5 Towns -->
             <div class="hotspot town" style="left: 78.4%; top: 42.5%;">
-                <img src="town.PNG" alt="">
+                <img src="../town.PNG" alt="">
                 <span class="tooltip">Fernhill Town</span>
             </div>
             <div class="hotspot town" style="left: 48.4%; top: 22.5%;">
-                <img src="town.PNG" alt="">
+                <img src="../town.PNG" alt="">
                 <span class="tooltip">Tingrove Town</span>
             </div>
             <div class="hotspot town" style="left: 15%; top: 12.5%;">
-                <img src="town.PNG" alt="">
+                <img src="../town.PNG" alt="">
                 <span class="tooltip">Unnamed Town</span>
             </div>
             <div class="hotspot town" style="left: 78.4%; top: 62.5%;">
-                <img src="town.PNG" alt="">
+                <img src="../town.PNG" alt="">
                 <span class="tooltip">Unnamed Town</span>
             </div>
             <div class="hotspot town" style="left: 91.7%; top: 17.5%;">
-                <img src="town.PNG" alt="">
+                <img src="../town.PNG" alt="">
                 <span class="tooltip">Crystopia Town</span>
             </div>
 
             <!-- 6 Normal Cities -->
             <div class="hotspot city" style="left: 78.4%; top: 27.5%;">
-                <img src="city.PNG" alt="">
+                <img src="../city.PNG" alt="">
                 <span class="tooltip">Artemisia City</span>
             </div>
             <div class="hotspot city" style="left: 48.4%; top: 42.5%;">
-                <img src="city.PNG" alt="">
+                <img src="../city.PNG" alt="">
                 <span class="tooltip">Maripine Resort</span>
             </div>
             <div class="hotspot city" style="left: 25%; top: 32.5%;">
-                <img src="city.PNG" alt="">
+                <img src="../city.PNG" alt="">
                 <span class="tooltip">Stormaegis City</span>
             </div>
             <div class="hotspot city" style="left: 41.7%; top: 82.5%;">
-                <img src="city.PNG" alt="">
+                <img src="../city.PNG" alt="">
                 <span class="tooltip">Vacala Lake</span>
             </div>
             <div class="hotspot city" style="left: 65%; top: 57.5%;">
-                <img src="city.PNG" alt="">
+                <img src="../city.PNG" alt="">
                 <span class="tooltip">Seagress City</span>
             </div>
 
             <!-- 3 Horizontal Big Cities -->
             <div class="hotspot big-city-horizontal" style="left: 63.4%; top: 42.5%;">
-                <img src="big_city_horizontal.PNG" alt="">
+                <img src="../big_city_horizontal.PNG" alt="">
                 <span class="tooltip">Irideae City</span>
             </div>
             <div class="hotspot big-city-horizontal" style="left: 30%; top: 12.5%;">
-                <img src="big_city_horizontal.PNG" alt="">
+                <img src="../big_city_horizontal.PNG" alt="">
                 <span class="tooltip">Copperdale City</span>
             </div>
             <div class="hotspot big-city-horizontal" style="left: 23.4%; top: 57.5%;">
-                <img src="big_city_horizontal.PNG" alt="">
+                <img src="../big_city_horizontal.PNG" alt="">
                 <span class="tooltip">Sonodusk City</span>
             </div>
 
             <!-- 2 Vertical Big Cities -->
             <div class="hotspot big-city-vertical" style="left: 88.4%; top: 80%;">
-                <img src="big_city_vertical.PNG" alt="">
+                <img src="../big_city_vertical.PNG" alt="">
                 <span class="tooltip">Cerise City</span>
             </div>
             <div class="hotspot big-city-vertical" style="left: 15%; top: 90%;">
-                <img src="big_city_vertical.PNG" alt="">
+                <img src="../big_city_vertical.PNG" alt="">
                 <span class="tooltip">Palmeadow City</span>
             </div>
             </div>
