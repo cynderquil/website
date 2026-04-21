@@ -131,6 +131,25 @@
             height: auto;
         }
 
+        /* Characters / important objects that stand on hotspots */
+        .hotspot img.character {
+            position: absolute;
+            right: 0;
+            bottom: 0;
+            width: 2.2cqw;
+            height: 2.2cqw;
+            object-fit: contain;
+            object-position: right bottom;
+            display: block;
+            image-rendering: pixelated;
+            pointer-events: none;
+            transition: width 0.2s ease, height 0.2s ease;
+        }
+        .hotspot:hover img.character {
+            width: 3.3cqw;
+            height: 3.3cqw;
+        }
+
         /* Route number markers */
         .route-marker {
             position: absolute;
@@ -267,6 +286,9 @@
             accent-color: #ffcc00;
         }
         .map-container.routes-hidden .route-marker {
+            display: none;
+        }
+        .map-container.characters-hidden img.character {
             display: none;
         }
         .wip-section {
@@ -432,6 +454,10 @@
                         <input type="checkbox" id="toggle-routes" checked>
                         Show Routes
                     </label>
+                    <label class="wip-toggle">
+                        <input type="checkbox" id="toggle-characters" checked>
+                        Show Characters
+                    </label>
                 </div>
             </div>
 
@@ -445,6 +471,7 @@
             </div>
             <div class="hotspot landmark" style="left: 48.3%; top: 37.5%;">
                 <img src="../landmark.PNG" alt="">
+                <img class="character" src="../glimshade.PNG" alt="">
                 <span class="tooltip">Coastline Cave</span>
             </div>
             <div class="hotspot landmark" style="left: 48.3%; top: 12.5%;">
@@ -453,18 +480,22 @@
             </div>
             <div class="hotspot landmark" style="left: 28.3%; top: 7.5%;">
                 <img src="../landmark.PNG" alt="">
+                <img class="character" src="../veilrend.png" alt="">
                 <span class="tooltip">Copperdale Ruins</span>
             </div>
             <div class="hotspot landmark" style="left: 18.3%; top: 32.5%;">
                 <img src="../landmark.PNG" alt="">
+                <img class="character" src="../stormbane.png" alt="">
                 <span class="tooltip">Gale Hollow</span>
             </div>
             <div class="hotspot landmark" style="left: 15%; top: 52.5%;">
                 <img src="../landmark.PNG" alt="">
+                <img class="character" src="../silkshroud.png" alt="">
                 <span class="tooltip">Dawndune Wastes</span>
             </div>
             <div class="hotspot landmark" style="left: 5%; top: 57.5%;">
                 <img src="../landmark.PNG" alt="">
+                <img class="character" src="../scorchcap.png" alt="">
                 <span class="tooltip">Roseburn Island</span>
             </div>
             <div class="hotspot landmark" style="left: 45%; top: 77.5%;">
@@ -517,10 +548,12 @@
             </div>
             <div class="hotspot city" style="left: 48.4%; top: 42.5%;">
                 <img src="../city.PNG" alt="">
+                <img class="character" src="../collette.png" alt="">
                 <span class="tooltip">Maripine Resort</span>
             </div>
             <div class="hotspot city" style="left: 25%; top: 32.5%;">
                 <img src="../city.PNG" alt="">
+                <img class="character" src="../silquette.png" alt="">
                 <span class="tooltip">Stormaegis City</span>
             </div>
             <div class="hotspot city" style="left: 41.7%; top: 82.5%;">
@@ -539,14 +572,17 @@
             <!-- 3 Horizontal Big Cities -->
             <div class="hotspot big-city-horizontal" style="left: 63.4%; top: 42.5%;">
                 <img src="../big_city_horizontal.PNG" alt="">
+                <img class="character" src="../harper.png" alt="">
                 <span class="tooltip">Irideae City</span>
             </div>
             <div class="hotspot big-city-horizontal" style="left: 30%; top: 12.5%;">
                 <img src="../big_city_horizontal.PNG" alt="">
+                <img class="character" src="../waldren.png" alt="">
                 <span class="tooltip">Copperdale City</span>
             </div>
             <div class="hotspot big-city-horizontal" style="left: 26.6%; top: 57.5%;">
                 <img src="../big_city_horizontal.PNG" alt="">
+                <img class="character" src="../ivano.png" alt="">
                 <span class="tooltip">Sonodusk City</span>
             </div>
 
@@ -610,6 +646,12 @@
             if (toggleRoutes) {
                 toggleRoutes.addEventListener('change', () => {
                     container.classList.toggle('routes-hidden', !toggleRoutes.checked);
+                });
+            }
+            const toggleCharacters = document.getElementById('toggle-characters');
+            if (toggleCharacters) {
+                toggleCharacters.addEventListener('change', () => {
+                    container.classList.toggle('characters-hidden', !toggleCharacters.checked);
                 });
             }
 
