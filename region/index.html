@@ -11,6 +11,12 @@
             font-weight: normal;
             font-style: normal;
         }
+        @font-face {
+            font-family: 'Pokemon Gen3 Battle';
+            src: url('../pokemon-gen3-battle.otf.woff2') format('woff2');
+            font-weight: normal;
+            font-style: normal;
+        }
         body {
             margin: 0;
             font-family: Arial, sans-serif;
@@ -108,6 +114,10 @@
             width: 3.3cqw;
             height: auto;
         }
+        .hotspot.biggest-city img {
+            width: 6.6cqw;
+            height: auto;
+        }
         .hotspot.town img {
             width: 3.3cqw;
             height: auto;
@@ -115,6 +125,24 @@
         .hotspot.landmark img {
             width: 3.3cqw;
             height: auto;
+        }
+        .hotspot.league img {
+            width: 3.3cqw;
+            height: auto;
+        }
+
+        /* Route number markers */
+        .route-marker {
+            position: absolute;
+            transform: translate(-50%, -50%);
+            color: #b8890e;
+            font-family: 'Pokemon Gen3 Battle', cursive;
+            font-size: 1.4cqw;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            pointer-events: none;
+            white-space: nowrap;
+            z-index: 5;
         }
 
         /* Tooltip */
@@ -226,11 +254,26 @@
             color: rgba(255, 255, 255, 0.9);
             line-height: 1.4;
         }
+        .wip-toggle {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            color: rgba(255, 255, 255, 0.9);
+            line-height: 1.4;
+        }
+        .wip-toggle input {
+            cursor: pointer;
+            accent-color: #ffcc00;
+        }
+        .map-container.routes-hidden .route-marker {
+            display: none;
+        }
         .wip-section {
             display: flex;
             flex-direction: column;
         }
-        .wip-section:first-child {
+        .wip-section:not(:last-child) {
             padding-bottom: 12px;
             border-bottom: 1px solid rgba(255, 255, 255, 0.3);
         }
@@ -285,7 +328,7 @@
             .wip-banner h4 {
                 font-size: 14px;
             }
-            .wip-section:first-child {
+            .wip-section:not(:last-child) {
                 padding-bottom: 6px;
             }
             .hotspot .tooltip {
@@ -322,7 +365,7 @@
                 flex: 1;
                 min-width: 120px;
             }
-            .wip-section:first-child {
+            .wip-section:not(:last-child) {
                 border-bottom: none;
                 padding-bottom: 0;
                 border-right: 1px solid rgba(255, 255, 255, 0.3);
@@ -364,7 +407,7 @@
                 font-size: 12px;
                 margin-bottom: 3px;
             }
-            .wip-section:first-child {
+            .wip-section:not(:last-child) {
                 padding-bottom: 4px;
             }
         }
@@ -384,19 +427,11 @@
             <!-- WIP Banner (outside map-container for fixed position) -->
             <div class="wip-banner">
                 <div class="wip-section">
-                    <h4>CITIES TO ADD</h4>
-                    <ul>
-                        <li>Sheliana City</li>
-                        <li>Limelock Island</li>
-                        <li>Loftshore City</li>
-                        <li>Citridock Village</li>
-                    </ul>
-                </div>
-                <div class="wip-section">
-                    <h4>SPOTS TO ADD</h4>
-                    <ul>
-                        <li>Corsola Cradle</li>
-                    </ul>
+                    <h4>DISPLAY</h4>
+                    <label class="wip-toggle">
+                        <input type="checkbox" id="toggle-routes" checked>
+                        Show Routes
+                    </label>
                 </div>
             </div>
 
@@ -408,31 +443,35 @@
                 <img src="../landmark.PNG" alt="">
                 <span class="tooltip">Fernhill Forest</span>
             </div>
-            <div class="hotspot landmark" style="left: 48.4%; top: 37.5%;">
+            <div class="hotspot landmark" style="left: 48.3%; top: 37.5%;">
                 <img src="../landmark.PNG" alt="">
                 <span class="tooltip">Coastline Cave</span>
             </div>
-            <div class="hotspot landmark" style="left: 48.4%; top: 12.5%;">
+            <div class="hotspot landmark" style="left: 48.3%; top: 12.5%;">
                 <img src="../landmark.PNG" alt="">
                 <span class="tooltip">Nimbus Jungle</span>
             </div>
-            <div class="hotspot landmark" style="left: 28.4%; top: 7.5%;">
+            <div class="hotspot landmark" style="left: 28.3%; top: 7.5%;">
                 <img src="../landmark.PNG" alt="">
                 <span class="tooltip">Copperdale Ruins</span>
             </div>
-            <div class="hotspot landmark" style="left: 11.7%; top: 57.5%;">
+            <div class="hotspot landmark" style="left: 18.3%; top: 32.5%;">
                 <img src="../landmark.PNG" alt="">
-                <span class="tooltip">Dawndune Outpost</span>
+                <span class="tooltip">Gale Hollow</span>
+            </div>
+            <div class="hotspot landmark" style="left: 15%; top: 52.5%;">
+                <img src="../landmark.PNG" alt="">
+                <span class="tooltip">Dawndune Wastes</span>
             </div>
             <div class="hotspot landmark" style="left: 5%; top: 57.5%;">
                 <img src="../landmark.PNG" alt="">
                 <span class="tooltip">Roseburn Island</span>
             </div>
-            <div class="hotspot landmark" style="left: 45%; top: 77.4%;">
+            <div class="hotspot landmark" style="left: 45%; top: 77.5%;">
                 <img src="../landmark.PNG" alt="">
                 <span class="tooltip">Devon Industrial Complex</span>
             </div>
-            <div class="hotspot landmark" style="left: 18.4%; top: 72.5%;">
+            <div class="hotspot landmark" style="left: 15%; top: 77.5%;">
                 <img src="../landmark.PNG" alt="">
                 <span class="tooltip">Dustspire Canyon</span>
             </div>
@@ -440,13 +479,13 @@
                 <img src="../landmark.PNG" alt="">
                 <span class="tooltip">Unnamed Cherry Forest</span>
             </div>
-            <div class="hotspot landmark" style="left: 91.7%; top: 12.5%;">
+            <div class="hotspot landmark" style="left: 91.7%; top: 7.5%;">
                 <img src="../landmark.PNG" alt="">
                 <span class="tooltip">Mt. Azuric</span>
             </div>
 
             <!-- 5 Towns -->
-            <div class="hotspot town" style="left: 78.4%; top: 42.5%;">
+            <div class="hotspot town" style="left: 78.3%; top: 42.5%;">
                 <img src="../town.PNG" alt="">
                 <span class="tooltip">Fernhill Town</span>
             </div>
@@ -456,11 +495,15 @@
             </div>
             <div class="hotspot town" style="left: 15%; top: 12.5%;">
                 <img src="../town.PNG" alt="">
-                <span class="tooltip">Unnamed Town</span>
+                <span class="tooltip">Citridock Village</span>
             </div>
-            <div class="hotspot town" style="left: 78.4%; top: 62.5%;">
+            <div class="hotspot town" style="left: 78.3%; top: 62.5%;">
                 <img src="../town.PNG" alt="">
-                <span class="tooltip">Unnamed Town</span>
+                <span class="tooltip">Gag Town</span>
+            </div>
+            <div class="hotspot town" style="left: 8.4%; top: 32.5%;">
+                <img src="../town.PNG" alt="">
+                <span class="tooltip">Limelock Island</span>
             </div>
             <div class="hotspot town" style="left: 91.7%; top: 17.5%;">
                 <img src="../town.PNG" alt="">
@@ -468,7 +511,7 @@
             </div>
 
             <!-- 6 Normal Cities -->
-            <div class="hotspot city" style="left: 78.4%; top: 27.5%;">
+            <div class="hotspot city" style="left: 78.3%; top: 27.5%;">
                 <img src="../city.PNG" alt="">
                 <span class="tooltip">Artemisia City</span>
             </div>
@@ -488,6 +531,10 @@
                 <img src="../city.PNG" alt="">
                 <span class="tooltip">Seagress City</span>
             </div>
+            <div class="hotspot city" style="left: 91.7%; top: 62.5%;">
+                <img src="../city.PNG" alt="">
+                <span class="tooltip">Loftshore City</span>
+            </div>
 
             <!-- 3 Horizontal Big Cities -->
             <div class="hotspot big-city-horizontal" style="left: 63.4%; top: 42.5%;">
@@ -498,13 +545,13 @@
                 <img src="../big_city_horizontal.PNG" alt="">
                 <span class="tooltip">Copperdale City</span>
             </div>
-            <div class="hotspot big-city-horizontal" style="left: 23.4%; top: 57.5%;">
+            <div class="hotspot big-city-horizontal" style="left: 26.6%; top: 57.5%;">
                 <img src="../big_city_horizontal.PNG" alt="">
                 <span class="tooltip">Sonodusk City</span>
             </div>
 
             <!-- 2 Vertical Big Cities -->
-            <div class="hotspot big-city-vertical" style="left: 88.4%; top: 80%;">
+            <div class="hotspot big-city-vertical" style="left: 88.3%; top: 80%;">
                 <img src="../big_city_vertical.PNG" alt="">
                 <span class="tooltip">Cerise City</span>
             </div>
@@ -512,6 +559,44 @@
                 <img src="../big_city_vertical.PNG" alt="">
                 <span class="tooltip">Palmeadow City</span>
             </div>
+
+            <div class="hotspot biggest-city" style="left: 43.3%; top: 60%;">
+                <img src="../biggest_city.PNG" alt="">
+                <span class="tooltip">Sheliana City</span>
+            </div>
+
+            <div class="hotspot league" style="left: 75%; top: 7.5%;">
+                <img src="../league.PNG" alt="">
+                <span class="tooltip">Pokémon League</span>
+            </div>
+
+            <!-- Route markers -->
+            <div class="route-marker" style="left: 78.3%; top: 35%;">137</div>
+            <div class="route-marker" style="left: 70.85%; top: 42.5%;">138</div>
+            <div class="route-marker" style="left: 55.08%; top: 42.5%; color: #3f80b5;">139</div>
+            <div class="route-marker" style="left: 48.3%; top: 32%;">140</div>
+            <div class="route-marker" style="left: 48.3%; top: 17.5%;">141</div>
+            <div class="route-marker" style="left: 40.85%; top: 12.5%;">142</div>
+            <div class="route-marker" style="left: 20.85%; top: 12.5%;">143</div>
+            <div class="route-marker" style="left: 15%; top: 22.5%;">144</div>
+            <div class="route-marker" style="left: 21.3%; top: 32.5%;">145</div>
+            <div class="route-marker" style="left: 28.35%; top: 22.5%;">146</div>
+            <div class="route-marker" style="left: 25%; top: 45%;">147</div>
+            <div class="route-marker" style="left: 14.98%; top: 57.5%;">148</div>
+            <div class="route-marker" style="left: 35%; top: 57.5%;">149</div>
+            <div class="route-marker" style="left: 44.97%; top: 69.99%; color: #3f80b5;">150</div>
+            <div class="route-marker" style="left: 54.97%; top: 57.5%; color: #3f80b5;">151</div>
+            <div class="route-marker" style="left: 71.65%; top: 62.5%;">152</div>
+            <div class="route-marker" style="left: 78.3%; top: 70%;">153</div>
+            <div class="route-marker" style="left: 83.3%; top: 77.51%;">154</div>
+            <div class="route-marker" style="left: 85%; top: 62.5%;">155</div>
+            <div class="route-marker" style="left: 78.3%; top: 52.5%;">156</div>
+            <div class="route-marker" style="left: 86.4%; top: 27.5%;">157</div>
+            <div class="route-marker" style="left: 91.7%; top: 11.8%;">158</div>
+            <div class="route-marker" style="left: 85%; top: 17.5%;">159</div>
+            <div class="route-marker" style="left: 25%; top: 67.5%;">160</div>
+            <div class="route-marker" style="left: 15%; top: 81.8%;">161</div>
+
             </div>
         </div>
     </div>
@@ -521,6 +606,12 @@
             const viewport = document.querySelector('.map-viewport');
             const container = document.querySelector('.map-container');
             const tooltips = document.querySelectorAll('.hotspot .tooltip');
+            const toggleRoutes = document.getElementById('toggle-routes');
+            if (toggleRoutes) {
+                toggleRoutes.addEventListener('change', () => {
+                    container.classList.toggle('routes-hidden', !toggleRoutes.checked);
+                });
+            }
 
             let scale = 1;
             let panX = 0;
