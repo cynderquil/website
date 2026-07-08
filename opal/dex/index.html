@@ -1,0 +1,1049 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Cleaved Slab — Opal Pokédex</title>
+<meta name="description" content="The Senko regional Pokédex for Pokémon Opal, embedded in volcanic glass.">
+<style>
+/* ============================================================ Fonts */
+@font-face {
+    font-family: 'Pokemon Gen3';
+    src: url('../../pokemon-emerald.otf.woff2') format('woff2');
+    font-weight: normal; font-style: normal; font-display: swap;
+}
+@font-face {
+    font-family: 'Pokemon Gen3 Battle';
+    src: url('../../pokemon-gen3-battle.otf.woff2') format('woff2');
+    font-weight: normal; font-style: normal; font-display: swap;
+}
+
+/* ============================================================ Tokens */
+:root {
+    --slab: #0e0c16;
+    --slab-2: #14111f;
+    --slab-edge: #1d1830;
+    --pearl: #f5f2ea;
+    --pearl-2: #e9e4d7;
+    --ink: #23202b;
+    --lav: #afa9ec;
+    --teal: #5dcaa5;
+    --ember: #ff7a3c;
+    --lantern-r: 150px;
+    --lantern-ring: 190px;
+    --pixel: 'Pokemon Gen3', 'Pokemon Gen3 Battle', monospace;
+    --body: system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+    font-family: var(--body);
+    background: var(--slab);
+    color: #cfc9df;
+    display: flex;
+    min-height: 100vh;
+    overflow-x: hidden;
+}
+
+/* ============================================================ Sidebar (site convention) */
+.sidebar {
+    display: flex; flex-direction: column;
+    background-color: #f1f1f1;
+    min-height: 100vh; width: 120px; flex-shrink: 0;
+    position: sticky; top: 0; align-self: flex-start; z-index: 60;
+}
+.tab {
+    padding: 14px 16px; cursor: pointer; background-color: #f1f1f1;
+    border: none; outline: none; transition: .3s; text-decoration: none; color: #333;
+}
+.tab:hover { background-color: #ddd; }
+.tab.active { background-color: #ccc; }
+
+.content { flex: 1; min-width: 0; position: relative; }
+
+/* ============================================================ Header */
+.slab-header {
+    padding: 26px 26px 8px;
+    text-align: center;
+}
+.slab-header h1 {
+    font-family: var(--pixel);
+    font-size: clamp(28px, 4vw, 52px);
+    letter-spacing: 2px; margin: 0;
+    color: var(--pearl);
+    text-shadow: 0 0 18px rgba(175,169,236,.35);
+}
+.slab-header p {
+    margin: 6px 0 0; font-size: 13px; letter-spacing: .12em;
+    text-transform: uppercase; color: var(--lav); opacity: .7;
+}
+
+/* ============================================================ Toolbar */
+.toolbar {
+    position: sticky; top: 0; z-index: 50;
+    display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: center;
+    padding: 12px 20px;
+    background: linear-gradient(180deg, rgba(14,12,22,.97), rgba(14,12,22,.82));
+    backdrop-filter: blur(6px);
+    border-bottom: 1px solid var(--slab-edge);
+}
+.toolbar input[type="search"], .toolbar select {
+    background: var(--slab-2); color: var(--pearl);
+    border: 1px solid var(--slab-edge); border-radius: 8px;
+    padding: 8px 12px; font-family: var(--body); font-size: 14px; outline: none;
+}
+.toolbar input[type="search"] { min-width: 180px; }
+.toolbar input[type="search"]:focus, .toolbar select:focus { border-color: var(--lav); }
+.toolbar label.lbl { font-size: 12px; text-transform: uppercase; letter-spacing: .1em; color: var(--lav); opacity: .8; }
+
+.type-gems { display: flex; flex-wrap: wrap; gap: 5px; }
+.type-gem {
+    --c: #888;
+    width: 20px; height: 20px; transform: rotate(45deg); border-radius: 3px;
+    background: var(--c); opacity: .32; cursor: pointer;
+    border: 1px solid rgba(255,255,255,.25);
+    transition: opacity .15s, box-shadow .15s, transform .15s;
+    position: relative;
+}
+.type-gem:hover { opacity: .7; }
+.type-gem.on { opacity: 1; box-shadow: 0 0 10px var(--c); }
+.type-gem .tip {
+    position: absolute; inset: 0; transform: rotate(-45deg);
+    display: none;
+}
+.toggle {
+    display: inline-flex; align-items: center; gap: 7px; cursor: pointer;
+    font-size: 13px; color: #d9d3ea; user-select: none;
+}
+.toggle input { accent-color: var(--ember); width: 15px; height: 15px; }
+.count-pill {
+    margin-left: auto; font-family: var(--pixel); font-size: 13px;
+    color: var(--teal); letter-spacing: .05em;
+}
+.btn-ghost {
+    background: transparent; border: 1px solid var(--slab-edge); color: var(--lav);
+    border-radius: 8px; padding: 8px 10px; font-size: 12px; cursor: pointer;
+}
+.btn-ghost:hover { border-color: var(--lav); }
+
+/* ============================================================ Slab grid */
+.slab {
+    position: relative;
+    padding: 22px clamp(12px, 3vw, 34px) 80px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(112px, 1fr));
+    gap: clamp(8px, 1.4vw, 18px);
+    /* faceted obsidian backdrop */
+    background:
+        radial-gradient(120% 80% at 30% 0%, #171326 0%, transparent 60%),
+        conic-gradient(from 200deg at 70% 30%, #100d1b, #15111f, #0d0b15, #131020, #0e0c16),
+        var(--slab);
+}
+.slab::before {
+    /* faint conchoidal fracture texture */
+    content: ""; position: absolute; inset: 0; pointer-events: none; opacity: .5;
+    background:
+        repeating-linear-gradient(58deg, rgba(175,169,236,.03) 0 2px, transparent 2px 90px),
+        repeating-linear-gradient(-37deg, rgba(93,202,165,.025) 0 2px, transparent 2px 120px);
+    mask-image: radial-gradient(120% 100% at 50% 0%, #000 60%, transparent 100%);
+}
+
+/* Cell */
+.cell {
+    position: relative; aspect-ratio: 1 / 1;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 10px;
+    background: linear-gradient(160deg, rgba(255,255,255,.02), rgba(0,0,0,.25));
+    border: 1px solid rgba(175,169,236,.06);
+    cursor: default;
+    contain: layout paint style;
+    content-visibility: auto;
+    contain-intrinsic-size: 120px;
+    transition: transform .18s ease, box-shadow .25s ease, opacity .3s ease, filter .3s ease;
+}
+.cell .no {
+    position: absolute; top: 4px; left: 6px; font-family: var(--pixel);
+    font-size: 10px; color: var(--lav); opacity: 0; transition: opacity .25s;
+}
+.cell .name {
+    position: absolute; bottom: 3px; left: 0; right: 0; text-align: center;
+    font-size: 10px; color: var(--pearl); opacity: 0; transition: opacity .25s;
+    text-shadow: 0 1px 3px #000; pointer-events: none;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 0 4px;
+}
+.sprite {
+    width: 64px; height: 64px; max-width: 82%; max-height: 82%;
+    background-repeat: no-repeat; background-position: 0 0;
+    background-size: 100% 200%;               /* 2 stacked frames */
+    image-rendering: pixelated;
+    /* dormant look: a fleck in the glass */
+    opacity: .2; filter: grayscale(1) brightness(.55) contrast(.9);
+    transition: opacity .3s ease, filter .3s ease, transform .18s ease;
+}
+
+/* Lit / half-lit driven by the lantern */
+.cell.half .sprite { opacity: .5; filter: grayscale(.55) brightness(.8); }
+.cell.lit .sprite {
+    opacity: 1; filter: none;
+    animation: idle 600ms steps(1) infinite alternate;
+}
+.cell.lit { transform: scale(1.07); box-shadow: 0 0 22px rgba(175,169,236,.28); z-index: 5; cursor: pointer; }
+.cell.half { z-index: 2; }
+@keyframes idle { from { background-position: 0 0; } to { background-position: 0 -64px; } }
+
+/* Incipient: dangerous even asleep */
+.cell.incipient {
+    border-color: rgba(255,122,60,.28);
+    background:
+        linear-gradient(160deg, rgba(255,122,60,.05), rgba(0,0,0,.3)),
+        repeating-linear-gradient(24deg, rgba(255,122,60,.12) 0 1px, transparent 1px 14px),
+        repeating-linear-gradient(-52deg, rgba(255,90,40,.10) 0 1px, transparent 1px 22px);
+}
+.cell.incipient::after {
+    content: ""; position: absolute; inset: 0; border-radius: 10px; pointer-events: none;
+    box-shadow: inset 0 0 16px rgba(255,90,40,.18);
+}
+.cell.incipient.lit { box-shadow: 0 0 26px rgba(255,110,60,.45); animation: flicker 220ms steps(2) infinite; }
+@keyframes flicker { 0%,100% { box-shadow: 0 0 26px rgba(255,110,60,.45); } 50% { box-shadow: 0 0 16px rgba(255,150,60,.30); } }
+
+/* Sunk (filtered out): deeper into the glass */
+.cell.sunk { opacity: .05; filter: blur(1px); transform: scale(.9); pointer-events: none; }
+.cell.sunk .sprite { animation: none !important; }
+
+/* keyboard lantern focus */
+.cell.kfocus { outline: 2px solid var(--teal); outline-offset: 2px; }
+
+/* ============================================================ Lantern */
+#lantern {
+    position: fixed; left: 0; top: 0; width: calc(var(--lantern-ring) * 2); height: calc(var(--lantern-ring) * 2);
+    transform: translate(-9999px, -9999px); margin-left: calc(var(--lantern-ring) * -1); margin-top: calc(var(--lantern-ring) * -1);
+    pointer-events: none; z-index: 40; border-radius: 50%;
+    background: radial-gradient(circle,
+        rgba(255,251,240,.55) 0%,
+        rgba(214,205,255,.30) 26%,
+        rgba(175,169,236,.14) 48%,
+        rgba(175,169,236,0) 72%);
+    mix-blend-mode: screen; opacity: 0; transition: opacity .4s ease;
+    will-change: transform;
+}
+#lantern.on { opacity: 1; }
+
+/* ============================================================ Fracture overlay */
+#fracture { position: fixed; inset: 0; z-index: 80; pointer-events: none; opacity: 0; }
+#fracture.go { animation: crackflash .38s ease-out forwards; }
+@keyframes crackflash {
+    0% { opacity: 0; } 12% { opacity: 1; } 60% { opacity: .85; } 100% { opacity: 0; }
+}
+#fracture path { stroke: #fff; stroke-width: 2; fill: none; filter: drop-shadow(0 0 6px var(--lav)); }
+
+/* ============================================================ Detail (cleave) */
+#detail {
+    position: fixed; inset: 0; margin: 0; padding: 0; border: 0; width: 100%; height: 100%;
+    background: transparent; z-index: 90; overflow: hidden;
+}
+#detail::backdrop { background: rgba(6,5,10,.72); backdrop-filter: blur(3px); }
+.fracture-face {
+    position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+    width: min(960px, 94vw); max-height: 92vh; overflow-y: auto;
+    background:
+        linear-gradient(180deg, var(--pearl) 0%, var(--pearl-2) 100%);
+    color: var(--ink); border-radius: 4px;
+    box-shadow: 0 30px 80px rgba(0,0,0,.6);
+    clip-path: polygon(0 10px, 8% 0, 22% 7px, 40% 0, 61% 6px, 80% 0, 93% 7px, 100% 0, 100% 100%, 0 100%);
+    animation: cleaveIn .32s cubic-bezier(.2,.9,.3,1) both;
+}
+@keyframes cleaveIn { from { opacity: 0; transform: translate(-50%, -46%) scale(.97); } to { opacity: 1; transform: translate(-50%,-50%) scale(1); } }
+.obsidian-edge {
+    height: 12px; background: linear-gradient(180deg, var(--slab), var(--slab-edge));
+    position: sticky; top: 0; z-index: 3;
+    clip-path: polygon(0 0,8% 60%,22% 20%,40% 70%,61% 20%,80% 65%,93% 25%,100% 60%,100% 0);
+}
+.detail-pad { padding: 8px clamp(16px, 3vw, 34px) 34px; }
+.detail-close {
+    position: absolute; top: 16px; right: 14px; z-index: 5;
+    background: var(--ink); color: var(--pearl); border: 0; width: 34px; height: 34px;
+    border-radius: 50%; cursor: pointer; font-size: 18px; line-height: 1;
+}
+.detail-nav { position: absolute; top: 16px; left: 14px; display: flex; gap: 8px; z-index: 5; }
+.detail-nav button {
+    background: var(--ink); color: var(--pearl); border: 0; border-radius: 8px;
+    padding: 6px 10px; cursor: pointer; font-size: 13px; font-family: var(--pixel);
+}
+.detail-nav button:disabled { opacity: .3; cursor: default; }
+
+.d-top { display: flex; gap: 22px; align-items: center; flex-wrap: wrap; padding-top: 20px; }
+.d-sprite-wrap { position: relative; width: 168px; height: 168px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    background: radial-gradient(circle at 50% 40%, rgba(175,169,236,.18), transparent 70%);
+    border-radius: 12px; }
+.d-sprite { width: 128px; height: 128px; image-rendering: pixelated;
+    background-repeat: no-repeat; background-size: 100% 200%;
+    animation: idle 600ms steps(1) infinite alternate; }
+.shiny-toggle {
+    position: absolute; bottom: 6px; right: 6px;
+    background: var(--ink); color: var(--lav); border: 1px solid var(--lav);
+    border-radius: 20px; padding: 4px 10px; font-size: 11px; cursor: pointer;
+    display: inline-flex; gap: 5px; align-items: center;
+}
+.shiny-toggle.on { color: var(--teal); border-color: var(--teal); box-shadow: 0 0 10px rgba(93,202,165,.4); }
+.d-head h2 { font-family: var(--pixel); font-size: 30px; margin: 0; letter-spacing: 1px; }
+.d-head .dexno { font-family: var(--pixel); color: #8a8598; font-size: 15px; }
+.d-head .cat { font-style: italic; color: #6b6675; margin: 2px 0 8px; }
+.d-head .badge-inc {
+    display: inline-block; font-family: var(--pixel); font-size: 11px; letter-spacing: .1em;
+    color: #fff; background: linear-gradient(90deg, var(--ember), #d63c1e);
+    padding: 2px 8px; border-radius: 4px; margin-left: 8px; vertical-align: middle;
+}
+
+/* type gems in detail */
+.d-types { display: flex; gap: 10px; margin: 6px 0; }
+.gem {
+    --c: #888; width: 26px; height: 26px; transform: rotate(45deg); border-radius: 4px;
+    background: linear-gradient(135deg, color-mix(in srgb, var(--c) 70%, white), var(--c));
+    border: 1px solid rgba(0,0,0,.25); box-shadow: 0 2px 6px rgba(0,0,0,.25);
+    position: relative;
+}
+.gem span { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+    transform: rotate(-45deg); font-size: 9px; font-weight: 700; color: #fff; text-shadow: 0 1px 1px rgba(0,0,0,.5);
+    text-transform: uppercase; letter-spacing: .02em; }
+.chip-types { display: flex; gap: 12px; align-items: center; }
+
+.d-flavor { font-size: 15px; line-height: 1.5; color: #322f3a; margin: 14px 0; max-width: 62ch; }
+.d-measure { display: flex; gap: 26px; font-size: 13px; color: #524d5c; margin-bottom: 10px; }
+.d-measure b { font-family: var(--pixel); color: var(--ink); font-weight: normal; font-size: 15px; }
+
+.section-title {
+    font-family: var(--pixel); font-size: 15px; letter-spacing: .06em; color: var(--ink);
+    margin: 22px 0 10px; padding-bottom: 5px; border-bottom: 2px solid var(--ink);
+    text-transform: uppercase;
+}
+
+/* abilities */
+.abilities { display: grid; gap: 8px; }
+.ability { background: #fff; border: 1px solid #ddd7c8; border-radius: 8px; padding: 9px 12px; }
+.ability .an { font-weight: 700; color: var(--ink); }
+.ability .hid { font-size: 10px; text-transform: uppercase; letter-spacing: .1em; color: #fff;
+    background: #9a86c9; padding: 1px 6px; border-radius: 10px; margin-left: 8px; }
+.ability .ad { font-size: 13px; color: #5b5666; margin-top: 2px; }
+
+/* stats */
+.stats { display: grid; grid-template-columns: 52px 1fr 34px; gap: 6px 10px; align-items: center; }
+.stats .sl { font-size: 12px; color: #5b5666; text-transform: uppercase; letter-spacing: .04em; }
+.stats .sv { font-family: var(--pixel); font-size: 14px; text-align: right; color: var(--ink); }
+.bar { height: 12px; background: #e0dacb; border-radius: 6px; overflow: hidden; }
+.bar > i { display: block; height: 100%; border-radius: 6px; transition: width .5s ease; }
+.bst-row { margin-top: 10px; font-family: var(--pixel); font-size: 16px; color: var(--ink); }
+.bst-row b { color: var(--teal); }
+
+/* secondary data */
+.datarow { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; }
+.datacard { background: #fff; border: 1px solid #ddd7c8; border-radius: 8px; padding: 8px 11px; }
+.datacard .k { font-size: 10px; text-transform: uppercase; letter-spacing: .08em; color: #8a8598; }
+.datacard .v { font-family: var(--pixel); font-size: 14px; color: var(--ink); margin-top: 3px; }
+
+/* evolution strip */
+.evo-strip { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; }
+.evo-mon { display: flex; flex-direction: column; align-items: center; cursor: pointer;
+    padding: 6px 10px; border-radius: 10px; transition: background .15s; }
+.evo-mon:hover { background: rgba(175,169,236,.18); }
+.evo-mon.current { background: rgba(93,202,165,.18); }
+.evo-mon .es { width: 72px; height: 72px; image-rendering: pixelated;
+    background-repeat: no-repeat; background-size: 100% 200%; background-position: 0 0; }
+.evo-mon .en { font-size: 12px; color: var(--ink); margin-top: 2px; }
+.evo-arrow { display: flex; flex-direction: column; align-items: center; color: #7a7488; min-width: 74px; }
+.evo-arrow .em { font-size: 11px; text-align: center; line-height: 1.15; max-width: 96px; }
+.evo-arrow .ea { font-size: 18px; line-height: 1; }
+
+/* learnsets */
+.moves { width: 100%; border-collapse: collapse; font-size: 13px; }
+.moves th, .moves td { text-align: left; padding: 5px 8px; border-bottom: 1px solid #e3ddce; }
+.moves th { font-family: var(--pixel); font-size: 11px; text-transform: uppercase; color: #6b6675; letter-spacing: .04em; }
+.moves td.num, .moves th.num { text-align: right; font-variant-numeric: tabular-nums; }
+.mv-type { display: inline-block; padding: 1px 7px; border-radius: 10px; color: #fff; font-size: 11px; }
+.mv-cat { font-size: 11px; color: #6b6675; }
+details.moveset { margin: 8px 0; border: 1px solid #ddd7c8; border-radius: 8px; background: #fff; }
+details.moveset > summary { cursor: pointer; padding: 9px 12px; font-family: var(--pixel);
+    font-size: 13px; color: var(--ink); list-style: none; }
+details.moveset > summary::-webkit-details-marker { display: none; }
+details.moveset > summary::before { content: "▸ "; color: var(--lav); }
+details.moveset[open] > summary::before { content: "▾ "; }
+details.moveset .mv-body { padding: 0 8px 8px; max-height: 320px; overflow-y: auto; }
+
+/* locations */
+.loc-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.loc-chip { display: inline-flex; align-items: center; gap: 7px;
+    background: #fff; border: 1px solid #ddd7c8; border-radius: 20px; padding: 5px 12px; font-size: 12px; color: var(--ink); }
+.loc-chip .lm { font-weight: 700; }
+.loc-chip .lmeth { color: #7a7488; text-transform: capitalize; }
+.loc-chip .lr { font-family: var(--pixel); color: var(--teal); }
+.loc-chip .llv { color: #5b5666; }
+.no-loc { font-style: italic; color: #6b6675; }
+.no-loc .note { display: block; margin-top: 4px; color: var(--ink); font-style: normal;
+    font-family: var(--pixel); font-size: 13px; }
+
+/* ============================================================ States */
+#status { text-align: center; padding: 80px 20px; }
+#status .slab-dark { font-family: var(--pixel); font-size: 24px; color: var(--lav); }
+#status .sub { margin-top: 10px; color: #7a7488; font-size: 14px; }
+#status .spinner { width: 34px; height: 34px; margin: 0 auto 16px;
+    border: 3px solid var(--slab-edge); border-top-color: var(--lav); border-radius: 50%;
+    animation: spin 1s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.hidden { display: none !important; }
+
+/* ============================================================ Responsive */
+@media (max-width: 768px) {
+    body { flex-direction: column; }
+    .sidebar { flex-direction: row; width: 100%; min-height: auto; position: static; }
+    .tab { flex: 1; text-align: center; }
+    .slab { grid-template-columns: repeat(4, 1fr); }
+    .toolbar { top: 0; }
+    .fracture-face { inset: 0; width: auto; height: auto; max-width: none; max-height: none;
+        transform: none; border-radius: 0; clip-path: none; }
+    @keyframes cleaveIn { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: none; } }
+    .fracture-face { animation: cleaveIn .3s ease both; }
+    .d-top { justify-content: center; text-align: center; }
+}
+@media (max-width: 340px) {
+    .slab { grid-template-columns: repeat(3, 1fr); }
+}
+
+/* ============================================================ Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+    .cell, .sprite, #lantern, .fracture-face, .d-sprite, .evo-mon .es { transition: none !important; animation: none !important; }
+    .cell.lit .sprite, .cell.incipient.lit, .d-sprite { animation: none !important; background-position: 0 0 !important; }
+    #fracture { display: none; }
+    .cell.lit { transform: none; }
+    .cell:hover .sprite { opacity: 1; filter: none; }
+}
+</style>
+</head>
+<body>
+<nav class="sidebar">
+    <a href="/" class="tab">Home</a>
+    <a href="/region" class="tab">Region</a>
+    <a href="/opal/dex" class="tab active">Dex</a>
+</nav>
+
+<div class="content">
+    <header class="slab-header">
+        <h1>The Cleaved Slab</h1>
+        <p>Senko Regional Pokédex &mdash; Pokémon Opal</p>
+    </header>
+
+    <div class="toolbar" role="search">
+        <input type="search" id="search" placeholder="Search name or №…" aria-label="Search by name or number" autocomplete="off">
+        <span class="lbl">Types</span>
+        <div class="type-gems" id="typeGems" role="group" aria-label="Filter by type"></div>
+        <label class="lbl" for="sort">Sort</label>
+        <select id="sort" aria-label="Sort order">
+            <option value="regional">Dex №</option>
+            <option value="bst">BST</option>
+            <option value="height">Height</option>
+            <option value="weight">Weight</option>
+        </select>
+        <label class="toggle"><input type="checkbox" id="incipientOnly"> Incipient only</label>
+        <button class="btn-ghost" id="clearFilters" type="button">Clear</button>
+        <span class="count-pill" id="countPill" aria-live="polite"></span>
+    </div>
+
+    <div id="status">
+        <div class="spinner" aria-hidden="true"></div>
+        <div>Splitting the glass…</div>
+    </div>
+
+    <main class="slab" id="slab" role="grid" aria-label="Pokédex slab" hidden></main>
+</div>
+
+<div id="lantern" aria-hidden="true"></div>
+
+<svg id="fracture" aria-hidden="true" viewBox="0 0 100 100" preserveAspectRatio="none">
+    <path d="M-2,44 L30,40 L44,54 L52,38 L66,50 L80,36 L102,46" />
+    <path d="M46,-2 L42,28 L54,44 L40,60 L50,80 L44,102" />
+</svg>
+
+<dialog id="detail" aria-label="Pokémon details"></dialog>
+
+<script>
+"use strict";
+/* ============================================================================
+ * The Cleaved Slab — Opal web Pokédex
+ * Data + sprites are generated by tools/dexgen/generate_dex.py in the Opal repo
+ * and committed into this repo at opal/dex/data/, so the page loads them
+ * same-origin. Override with ?data=<base> to point elsewhere (e.g. a raw URL).
+ * ==========================================================================*/
+
+const params = new URLSearchParams(location.search);
+const DATA_BASE = params.get("data") || "./data";
+
+/* Manual location notes for mons not found in the wild (gift / static / trade).
+ * Keyed by species slug — edit freely. */
+const LOCATION_OVERRIDES = {
+    // "cyndaquil": "Starter — choose from Prof. Rowan's lab.",
+    // "silktide":  "Evolve Clamperl (Incipient) with a Deep Sea Scale.",
+};
+
+const TYPE_COLORS = {
+    Normal:"#A8A77A", Fire:"#EE8130", Water:"#6390F0", Electric:"#F7D02C", Grass:"#7AC74C",
+    Ice:"#96D9D6", Fighting:"#C22E28", Poison:"#A33EA1", Ground:"#E2BF65", Flying:"#A98FF3",
+    Psychic:"#F95587", Bug:"#A6B91A", Rock:"#B6A136", Ghost:"#735797", Dragon:"#6F35FC",
+    Dark:"#705746", Steel:"#B7B7CE", Fairy:"#D685AD", Stellar:"#5dcaa5"
+};
+const METHOD_ICONS = {
+    grass:"🌿", cave:"🪨", surfing:"🌊", "rock smash":"🪨",
+    "old rod":"🎣", "good rod":"🎣", "super rod":"🎣"
+};
+
+const state = {
+    all: [], view: [],
+    byId: new Map(), byIdx: new Map(),
+    activeTypes: new Set(),
+    lantern: { x: -9999, y: -9999, active: false, planted: false },
+    kfocus: -1,
+    reduced: matchMedia("(prefers-reduced-motion: reduce)").matches,
+    touch: matchMedia("(hover: none)").matches,
+};
+
+const $ = (s, r=document) => r.querySelector(s);
+const spriteUrl = (p) => p ? `${DATA_BASE}/${p}` : "";
+
+/* ---------------------------------------------------------------- Boot */
+async function init() {
+    buildTypeGems();
+    wireToolbar();
+    wireLantern();
+    wireKeyboard();
+    try {
+        const res = await fetch(`${DATA_BASE}/dex.json`, { cache: "no-cache" });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        state.all = data.species || [];
+        if (!state.all.length) throw new Error("empty dex");
+        state.all.forEach((m, i) => { m._i = i; state.byId.set(m.slug, m); });
+        applyFilters();
+        buildGrid();
+        $("#status").hidden = true;
+        $("#slab").hidden = false;
+        // Cell positions must be measured AFTER the loading status is removed from flow,
+        // otherwise every centre is offset downward by the status block's height.
+        computeCenters();
+        requestAnimationFrame(computeCenters);
+        if (location.hash) openBySlug(decodeURIComponent(location.hash.slice(1)), false);
+    } catch (err) {
+        showError(err);
+    }
+}
+
+function showError(err) {
+    $("#status").innerHTML =
+        `<div class="slab-dark">The slab is dark.</div>
+         <div class="sub">The Pokédex data could not be summoned from the glass.<br>
+         <small>${String(err.message || err)}</small></div>
+         <div style="margin-top:16px"><button class="btn-ghost" onclick="location.reload()">Try again</button></div>`;
+    $("#status").hidden = false;
+    $("#slab").hidden = true;
+}
+
+/* ---------------------------------------------------------------- Type gems */
+function buildTypeGems() {
+    const wrap = $("#typeGems");
+    Object.keys(TYPE_COLORS).forEach(t => {
+        if (t === "Stellar") return;
+        const g = document.createElement("button");
+        g.className = "type-gem"; g.style.setProperty("--c", TYPE_COLORS[t]);
+        g.type = "button"; g.title = t; g.setAttribute("aria-label", `Toggle ${t} type`);
+        g.setAttribute("aria-pressed", "false");
+        g.addEventListener("click", () => {
+            if (state.activeTypes.has(t)) { state.activeTypes.delete(t); g.classList.remove("on"); g.setAttribute("aria-pressed","false"); }
+            else { state.activeTypes.add(t); g.classList.add("on"); g.setAttribute("aria-pressed","true"); }
+            refresh();
+        });
+        wrap.appendChild(g);
+    });
+}
+
+/* ---------------------------------------------------------------- Toolbar */
+function wireToolbar() {
+    $("#search").addEventListener("input", refresh);
+    $("#sort").addEventListener("change", refresh);
+    $("#incipientOnly").addEventListener("change", refresh);
+    $("#clearFilters").addEventListener("click", () => {
+        $("#search").value = ""; $("#sort").value = "regional"; $("#incipientOnly").checked = false;
+        state.activeTypes.clear();
+        document.querySelectorAll(".type-gem.on").forEach(g => { g.classList.remove("on"); g.setAttribute("aria-pressed","false"); });
+        refresh();
+    });
+}
+
+function matches(m) {
+    const q = $("#search").value.trim().toLowerCase();
+    if (q) {
+        const num = String(m.regionalDexNo || "");
+        const natnum = String(m.nationalDexNo || "");
+        if (!m.displayName.toLowerCase().includes(q) && num !== q && !num.includes(q) && natnum !== q) return false;
+    }
+    if ($("#incipientOnly").checked && !m.isIncipient) return false;
+    if (state.activeTypes.size) {
+        for (const t of state.activeTypes) if (!m.types.includes(t)) return false;
+    }
+    return true;
+}
+
+function applyFilters() {
+    const sort = $("#sort").value;
+    const passed = state.all.filter(matches);
+    const cmp = {
+        regional: (a,b) => (a.regionalDexNo||9e9)-(b.regionalDexNo||9e9) || a._i-b._i,
+        bst: (a,b) => b.bst-a.bst || a._i-b._i,
+        height: (a,b) => b.heightM-a.heightM || a._i-b._i,
+        weight: (a,b) => b.weightKg-a.weightKg || a._i-b._i,
+    }[sort];
+    passed.sort(cmp);
+    state.view = passed;
+    const passedSet = new Set(passed.map(m => m.slug));
+    return passedSet;
+}
+
+function refresh() {
+    const passedSet = applyFilters();
+    // Reorder + sink non-matching cells (they stay in the DOM, sink into the glass).
+    const slab = $("#slab");
+    state.view.forEach((m, idx) => {
+        const cell = state.byIdx.get(m.slug);
+        if (cell) { cell.style.order = idx; cell.classList.remove("sunk"); }
+    });
+    state.all.forEach(m => {
+        if (!passedSet.has(m.slug)) {
+            const cell = state.byIdx.get(m.slug);
+            if (cell) cell.classList.add("sunk");
+        }
+    });
+    $("#countPill").textContent = `${state.view.length} / ${state.all.length}`;
+    computeCenters();
+    updateLit();
+}
+
+/* ---------------------------------------------------------------- Grid */
+let io;
+function buildGrid() {
+    const slab = $("#slab");
+    slab.style.display = "grid";
+    const frag = document.createDocumentFragment();
+    io = new IntersectionObserver(onIntersect, { rootMargin: "300px" });
+
+    state.all.forEach(m => {
+        const cell = document.createElement("div");
+        cell.className = "cell" + (m.isIncipient ? " incipient" : "");
+        cell.setAttribute("role", "gridcell");
+        cell.tabIndex = -1;
+        cell.dataset.slug = m.slug;
+        cell.dataset.src = spriteUrl(m.sprites && m.sprites.normal);
+
+        const no = document.createElement("span");
+        no.className = "no"; no.textContent = m.regionalDexNo ? "№" + String(m.regionalDexNo).padStart(3,"0") : "—";
+        const spr = document.createElement("div");
+        spr.className = "sprite";
+        spr.setAttribute("role", "img");
+        spr.setAttribute("aria-label", m.displayName);
+        const nm = document.createElement("span");
+        nm.className = "name"; nm.textContent = m.displayName;
+
+        cell.append(no, spr, nm);
+        // Open on click. On pointer devices the cursor is the lantern centre, so the
+        // clicked cell is always lit; sunk (filtered-out) cells stay unclickable.
+        cell.addEventListener("click", () => { if (!cell.classList.contains("sunk")) openBySlug(m.slug); });
+        frag.appendChild(cell);
+        state.byIdx.set(m.slug, cell);
+        io.observe(cell);
+    });
+    slab.appendChild(frag);
+    refresh();
+    window.addEventListener("resize", () => { computeCenters(); }, { passive: true });
+    window.addEventListener("scroll", markDirty, { passive: true });
+}
+
+function onIntersect(entries) {
+    for (const e of entries) {
+        if (e.isIntersecting) {
+            const cell = e.target;
+            const spr = cell.querySelector(".sprite");
+            if (cell.dataset.src && !spr.style.backgroundImage) {
+                spr.style.backgroundImage = `url("${cell.dataset.src}")`;
+            }
+            io.unobserve(cell);
+        }
+    }
+}
+
+/* ---------------------------------------------------------------- Lantern */
+let centers = [];   // {slug, cx, cy, cell}  in document coords
+function computeCenters() {
+    centers = [];
+    const sx = window.scrollX, sy = window.scrollY;
+    for (const m of state.all) {
+        const cell = state.byIdx.get(m.slug);
+        if (!cell || cell.classList.contains("sunk")) continue;
+        const r = cell.getBoundingClientRect();
+        if (r.width === 0) continue;
+        centers.push({ cell, cx: r.left + sx + r.width/2, cy: r.top + sy + r.height/2 });
+    }
+}
+
+let dirty = false;
+function markDirty() { dirty = true; }
+
+function wireLantern() {
+    const lantern = $("#lantern");
+    const R = 150, RING = 190;
+
+    // Mouse handling is always attached (a device can have both pointer types).
+    window.addEventListener("mousemove", (e) => {
+        state.lantern.x = e.clientX + window.scrollX;
+        state.lantern.y = e.clientY + window.scrollY;
+        state.lantern.active = true;
+        lantern.style.transform = `translate(${e.clientX}px, ${e.clientY}px)`;
+        lantern.classList.add("on");
+        markDirty();
+    }, { passive: true });
+    document.addEventListener("mouseleave", () => {
+        if (state.lantern.planted) return;   // keep a planted (touch) lantern lit
+        lantern.classList.remove("on"); state.lantern.active = false; markDirty();
+    });
+
+    // Touch: first tap plants the lantern; drag moves it; tap a lit mon opens it.
+    let moved = false, startX = 0, startY = 0;
+    const slab = $("#slab");
+    slab.addEventListener("touchstart", (e) => {
+        const t = e.touches[0]; moved = false; startX = t.clientX; startY = t.clientY;
+        placeLantern(t.clientX, t.clientY);
+    }, { passive: true });
+    slab.addEventListener("touchmove", (e) => {
+        const t = e.touches[0];
+        if (Math.abs(t.clientX-startX) > 8 || Math.abs(t.clientY-startY) > 8) moved = true;
+        placeLantern(t.clientX, t.clientY);
+    }, { passive: true });
+    slab.addEventListener("touchend", (e) => {
+        if (moved) return;
+        const t = e.changedTouches[0];
+        const el = document.elementFromPoint(t.clientX, t.clientY);
+        const cell = el && el.closest(".cell");
+        // First tap planted the lantern; a tap on a lit (or, under reduced motion, any
+        // non-sunk) cell cleaves it open.
+        if (cell && !cell.classList.contains("sunk") &&
+            (cell.classList.contains("lit") || state.reduced)) openBySlug(cell.dataset.slug);
+    });
+
+    function placeLantern(clientX, clientY) {
+        state.lantern.x = clientX + window.scrollX;
+        state.lantern.y = clientY + window.scrollY;
+        state.lantern.active = true; state.lantern.planted = true;
+        lantern.style.transform = `translate(${clientX}px, ${clientY}px)`;
+        lantern.classList.add("on");
+        markDirty();
+    }
+
+    // rAF loop — only recompute lit cells when something changed.
+    function loop() {
+        if (dirty) { dirty = false; updateLit(); }
+        requestAnimationFrame(loop);
+    }
+    requestAnimationFrame(loop);
+    computeCenters();
+}
+
+function updateLit() {
+    const R = 150, RING = 190, R2 = R*R, RING2 = RING*RING;
+    const { x, y, active } = state.lantern;
+    if (state.reduced) return;   // reduced-motion: rely on :hover only
+    for (const c of centers) {
+        const cls = c.cell.classList;
+        if (!active) { cls.remove("lit","half"); continue; }
+        const dx = c.cx - x, dy = c.cy - y, d2 = dx*dx + dy*dy;
+        if (d2 <= R2) { cls.add("lit"); cls.remove("half"); }
+        else if (d2 <= RING2) { cls.add("half"); cls.remove("lit"); }
+        else { cls.remove("lit","half"); }
+    }
+}
+
+/* ---------------------------------------------------------------- Keyboard lantern focus */
+function wireKeyboard() {
+    document.addEventListener("keydown", (e) => {
+        if ($("#detail").open) return;      // detail handles its own keys
+        const cols = getCols();
+        if (["ArrowRight","ArrowLeft","ArrowUp","ArrowDown"].includes(e.key)) {
+            e.preventDefault();
+            const n = state.view.length; if (!n) return;
+            let i = state.kfocus < 0 ? 0 : state.kfocus;
+            if (e.key === "ArrowRight") i = Math.min(n-1, i+1);
+            if (e.key === "ArrowLeft") i = Math.max(0, i-1);
+            if (e.key === "ArrowDown") i = Math.min(n-1, i+cols);
+            if (e.key === "ArrowUp") i = Math.max(0, i-cols);
+            setKFocus(i);
+        } else if (e.key === "Enter" && state.kfocus >= 0) {
+            const m = state.view[state.kfocus]; if (m) openBySlug(m.slug);
+        }
+    });
+}
+function getCols() {
+    const slab = $("#slab");
+    const cs = getComputedStyle(slab).gridTemplateColumns.split(" ").length;
+    return Math.max(1, cs);
+}
+function setKFocus(i) {
+    document.querySelectorAll(".cell.kfocus").forEach(c => c.classList.remove("kfocus"));
+    state.kfocus = i;
+    const m = state.view[i]; if (!m) return;
+    const cell = state.byIdx.get(m.slug); if (!cell) return;
+    cell.classList.add("kfocus"); cell.tabIndex = 0; cell.focus({ preventScroll: false });
+    // Light it (and neighbours) by planting the lantern at its centre.
+    const r = cell.getBoundingClientRect();
+    state.lantern.x = r.left + window.scrollX + r.width/2;
+    state.lantern.y = r.top + window.scrollY + r.height/2;
+    state.lantern.active = true;
+    const lantern = $("#lantern");
+    lantern.style.transform = `translate(${r.left + r.width/2}px, ${r.top + r.height/2}px)`;
+    lantern.classList.add("on");
+    markDirty();
+}
+
+/* ---------------------------------------------------------------- Cleave / detail */
+let shinyOn = false;
+function openBySlug(slug, animate=true) {
+    const m = state.byId.get(slug);
+    if (!m) return;
+    shinyOn = false;
+    if (animate && !state.reduced) {
+        const fr = $("#fracture"); fr.classList.remove("go"); void fr.offsetWidth; fr.classList.add("go");
+    }
+    renderDetail(m);
+    const dlg = $("#detail");
+    if (!dlg.open) dlg.showModal();
+    history.replaceState(null, "", "#" + slug);
+    dlg.scrollTop = 0;
+    const face = dlg.querySelector(".fracture-face"); if (face) face.scrollTop = 0;
+}
+
+function closeDetail() {
+    const dlg = $("#detail");
+    if (dlg.open) dlg.close();
+    history.replaceState(null, "", location.pathname + location.search);
+}
+
+function renderDetail(m) {
+    const idxInView = state.view.findIndex(x => x.slug === m.slug);
+    const prev = idxInView > 0 ? state.view[idxInView-1] : null;
+    const next = idxInView >= 0 && idxInView < state.view.length-1 ? state.view[idxInView+1] : null;
+
+    const typeGems = m.types.map(t =>
+        `<div class="gem" style="--c:${TYPE_COLORS[t]||'#888'}" title="${t}"><span>${t.slice(0,3)}</span></div>`).join("");
+
+    const abilities = m.abilities.map(a =>
+        `<div class="ability"><div><span class="an">${esc(a.name)}</span>${a.isHidden?'<span class="hid">Hidden</span>':''}</div>
+         <div class="ad">${esc(a.description||"")}</div></div>`).join("") || `<div class="ad">No abilities listed.</div>`;
+
+    const stat = (label, key) => {
+        const v = m.baseStats[key] ?? 0;
+        const pct = Math.min(100, v/255*100);
+        return `<div class="sl">${label}</div><div class="bar"><i style="width:${pct}%;background:${statColor(v)}"></i></div><div class="sv">${v}</div>`;
+    };
+    const stats = stat("HP","hp")+stat("Atk","atk")+stat("Def","def")+stat("SpA","spa")+stat("SpD","spd")+stat("Spe","spe");
+
+    const ev = Object.entries(m.evYield||{}).map(([k,v]) => `${v} ${k.toUpperCase()}`).join(", ") || "None";
+    const gender = m.genderRatio.genderless ? "Genderless"
+        : `${(100-m.genderRatio.femalePercent).toFixed(m.genderRatio.femalePercent%1?1:0)}% ♂ / ${m.genderRatio.femalePercent}% ♀`;
+
+    const secondary = [
+        ["Catch Rate", m.catchRate ?? "—"],
+        ["EV Yield", ev],
+        ["Growth", m.growthRate || "—"],
+        ["Egg Groups", (m.eggGroups||[]).join(", ") || "—"],
+        ["Gender", gender],
+        ["Egg Cycles", m.eggCycles ?? "—"],
+        ["Base Friendship", m.baseFriendship ?? "—"],
+        ["Base EXP", m.baseExpYield ?? "—"],
+    ].map(([k,v]) => `<div class="datacard"><div class="k">${k}</div><div class="v">${esc(String(v))}</div></div>`).join("");
+
+    const evo = renderEvolution(m);
+    const learn = renderLearnsets(m);
+    const loc = renderLocations(m);
+
+    const dlg = $("#detail");
+    dlg.innerHTML = `
+    <div class="fracture-face" role="document">
+      <div class="obsidian-edge"></div>
+      <div class="detail-nav">
+        <button id="btnPrev" ${prev?'':'disabled'} title="Previous">◄</button>
+        <button id="btnNext" ${next?'':'disabled'} title="Next">►</button>
+      </div>
+      <button class="detail-close" id="btnClose" aria-label="Close">✕</button>
+      <div class="detail-pad">
+        <div class="d-top">
+          <div class="d-sprite-wrap">
+            <div class="d-sprite" id="dSprite" role="img" aria-label="${esc(m.displayName)}${''}"></div>
+            <button class="shiny-toggle" id="shinyBtn" aria-pressed="false">✦ Shiny</button>
+          </div>
+          <div class="d-head">
+            <h2>${esc(m.displayName)}${m.isIncipient?'<span class="badge-inc">Incipient</span>':''}</h2>
+            <div class="dexno">${m.regionalDexNo?('Senko №'+String(m.regionalDexNo).padStart(3,"0")):'Unlisted'} · Nat №${m.nationalDexNo||'—'}</div>
+            <div class="cat">${esc(m.category||"")}</div>
+            <div class="chip-types"><div class="d-types">${typeGems}</div></div>
+          </div>
+        </div>
+
+        <p class="d-flavor">${esc(m.dexEntry||"")}</p>
+        <div class="d-measure"><div>Height <b>${m.heightM} m</b></div><div>Weight <b>${m.weightKg} kg</b></div></div>
+
+        <div class="section-title">Abilities</div>
+        <div class="abilities">${abilities}</div>
+
+        <div class="section-title">Base Stats</div>
+        <div class="stats">${stats}</div>
+        <div class="bst-row">BST <b>${m.bst}</b></div>
+
+        <div class="section-title">Data</div>
+        <div class="datarow">${secondary}</div>
+
+        <div class="section-title">Evolution</div>
+        ${evo}
+
+        <div class="section-title">Locations</div>
+        ${loc}
+
+        <div class="section-title">Learnset</div>
+        ${learn}
+      </div>
+    </div>`;
+
+    // wire sprite + shiny
+    setDetailSprite(m);
+    $("#shinyBtn").addEventListener("click", () => {
+        shinyOn = !shinyOn;
+        $("#shinyBtn").classList.toggle("on", shinyOn);
+        $("#shinyBtn").setAttribute("aria-pressed", String(shinyOn));
+        setDetailSprite(m);
+    });
+    $("#btnClose").addEventListener("click", closeDetail);
+    if (prev) $("#btnPrev").addEventListener("click", () => openBySlug(prev.slug, false));
+    if (next) $("#btnNext").addEventListener("click", () => openBySlug(next.slug, false));
+    dlg.querySelectorAll(".evo-mon[data-slug]").forEach(el =>
+        el.addEventListener("click", () => openBySlug(el.dataset.slug, false)));
+}
+
+function setDetailSprite(m) {
+    const el = $("#dSprite"); if (!el) return;
+    const path = shinyOn ? (m.sprites && m.sprites.shiny) : (m.sprites && m.sprites.normal);
+    el.style.backgroundImage = path ? `url("${spriteUrl(path)}")` : "none";
+    el.setAttribute("aria-label", m.displayName + (shinyOn ? " (shiny)" : ""));
+}
+
+function renderEvolution(m) {
+    const fam = m.family || [];
+    if (fam.length <= 1 && !(m.evolutions||[]).length) return `<div class="no-loc">Does not evolve.</div>`;
+    // Lookups for method labels. `edgeMethod` = direct from>to edge; `intoMethod` = any
+    // incoming edge to a species, so branched lines (e.g. Clamperl → Fangtide OR Silktide)
+    // still label each member by how it is actually obtained even when rendered linearly.
+    const edgeMethod = {}, intoMethod = {};
+    state.all.forEach(sp => (sp.evolutions||[]).forEach(e => {
+        edgeMethod[sp.slug + ">" + e.toSlug] = e.method;
+        if (!(e.toSlug in intoMethod)) intoMethod[e.toSlug] = e.method;
+    }));
+    let html = `<div class="evo-strip">`;
+    fam.forEach((f, i) => {
+        const sp = state.byId.get(f.slug) || f;
+        const spr = sp.sprites && sp.sprites.normal ? spriteUrl(sp.sprites.normal) : "";
+        html += `<div class="evo-mon ${f.slug===m.slug?'current':''}" data-slug="${f.slug}" title="${esc(f.name)}">
+                   <div class="es" style="background-image:url('${spr}')"></div>
+                   <div class="en">${esc(f.name)}</div></div>`;
+        if (i < fam.length-1) {
+            const next = fam[i+1].slug;
+            const method = edgeMethod[f.slug + ">" + next] || intoMethod[next] || "";
+            html += `<div class="evo-arrow"><div class="ea">→</div><div class="em">${esc(method)}</div></div>`;
+        }
+    });
+    html += `</div>`;
+    return html;
+}
+
+function moveRow(mv) {
+    const tcol = TYPE_COLORS[mv.type] || "#888";
+    return `<tr>
+        <td class="num">${mv.level!=null?mv.level:"—"}</td>
+        <td>${esc(mv.name)}</td>
+        <td><span class="mv-type" style="background:${tcol}">${esc(mv.type||"—")}</span></td>
+        <td class="mv-cat">${esc(mv.category||"—")}</td>
+        <td class="num">${mv.power||"—"}</td>
+        <td class="num">${mv.accuracy||"—"}</td>
+        <td class="num">${mv.pp||"—"}</td>
+    </tr>`;
+}
+function moveTable(rows, showLevel) {
+    return `<table class="moves"><thead><tr>
+        <th class="num">${showLevel?'Lv':'—'}</th><th>Move</th><th>Type</th><th>Cat</th>
+        <th class="num">Pow</th><th class="num">Acc</th><th class="num">PP</th>
+        </tr></thead><tbody>${rows}</tbody></table>`;
+}
+function renderLearnsets(m) {
+    const ls = m.learnset || {};
+    const lu = (ls.levelUp||[]).map(moveRow).join("");
+    let html = "";
+    html += `<div style="margin-bottom:6px">${ (ls.levelUp||[]).length ? moveTable(lu, true) : '<div class="no-loc">No level-up moves.</div>'}</div>`;
+    const coll = (title, arr) => {
+        if (!arr || !arr.length) return "";
+        const rows = arr.map(mv => moveRow({ ...mv, level: null })).join("");
+        return `<details class="moveset"><summary>${title} (${arr.length})</summary><div class="mv-body">${moveTable(rows, false)}</div></details>`;
+    };
+    html += coll("TM Moves", ls.tm);
+    html += coll("Tutor Moves", ls.tutor);
+    html += coll("Egg Moves", ls.egg);
+    return html;
+}
+
+function renderLocations(m) {
+    const locs = m.locations || [];
+    if (!locs.length) {
+        const note = LOCATION_OVERRIDES[m.slug];
+        return `<div class="no-loc">Not found in the wild.${note?`<span class="note">${esc(note)}</span>`:""}</div>`;
+    }
+    const chips = locs.map(l => {
+        const icon = METHOD_ICONS[l.method] || "•";
+        return `<span class="loc-chip"><span class="lm">${esc(l.map)}</span>
+            <span class="lmeth">${icon} ${esc(l.method)}</span>
+            <span class="llv">Lv ${esc(l.levels)}</span>
+            <span class="lr">${l.rate}%</span></span>`;
+    }).join("");
+    return `<div class="loc-chips">${chips}</div>`;
+}
+
+/* ---------------------------------------------------------------- Detail keyboard + hash */
+$("#detail").addEventListener("keydown", (e) => {
+    if (e.key === "Escape") { e.preventDefault(); closeDetail(); }
+    else if (e.key === "ArrowLeft") { const b = $("#btnPrev"); if (b && !b.disabled) b.click(); }
+    else if (e.key === "ArrowRight") { const b = $("#btnNext"); if (b && !b.disabled) b.click(); }
+});
+$("#detail").addEventListener("click", (e) => { if (e.target.id === "detail") closeDetail(); });
+$("#detail").addEventListener("close", () => {
+    if (location.hash) history.replaceState(null, "", location.pathname + location.search);
+});
+window.addEventListener("hashchange", () => {
+    const slug = decodeURIComponent(location.hash.slice(1));
+    if (slug && state.byId.has(slug)) openBySlug(slug, false);
+    else if (!slug && $("#detail").open) $("#detail").close();
+});
+
+/* ---------------------------------------------------------------- utils */
+function statColor(v) {
+    // red (low) → amber → teal/green (high), 0..255 clamped around 0..200
+    const t = Math.max(0, Math.min(1, v/200));
+    const hue = 0 + t*140;           // 0=red → 140=green
+    return `hsl(${hue.toFixed(0)}, 68%, 48%)`;
+}
+function esc(s) {
+    return String(s).replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
+}
+
+/* ---------------------------------------------------------------- Go */
+init();
+</script>
+</body>
+</html>

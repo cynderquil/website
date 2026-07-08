@@ -1,0 +1,16 @@
+# Node / Playwright test tooling (verification only — the site itself is plain static)
+node_modules/
+package.json
+package-lock.json
+test-results/
+playwright-report/
+
+# Editor / OS junk
+.claude/
+.vscode/
+.idea/
+.DS_Store
+*.swp
+
+# NOTE: opal/dex/data/ (generated dex.json + sprites) IS committed — the dex page
+# loads it same-origin. Regenerate it from the Opal repo: tools/dexgen/generate_dex.py
