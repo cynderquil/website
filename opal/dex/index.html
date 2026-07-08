@@ -229,6 +229,11 @@ body {
 }
 #lantern.on { opacity: 1; }
 
+/* While the slab is cleaved open, freeze the scene behind the detail so the
+ * blurred backdrop never has to re-composite animated sprites underneath. */
+body.cleaved .cell .sprite { animation-play-state: paused; }
+body.cleaved .cell.incipient.lit { animation-play-state: paused; }
+
 /* ============================================================ Fracture overlay */
 #fracture { position: fixed; inset: 0; z-index: 80; pointer-events: none; opacity: 0; }
 #fracture.go { animation: crackflash .38s ease-out forwards; }
@@ -246,6 +251,7 @@ body {
 .fracture-face {
     position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
     width: min(960px, 94vw); max-height: 92vh; overflow-y: auto;
+    overscroll-behavior: contain;
     background:
         linear-gradient(180deg, var(--pearl) 0%, var(--pearl-2) 100%);
     color: var(--ink); border-radius: 4px;
@@ -254,6 +260,12 @@ body {
     animation: cleaveIn .32s cubic-bezier(.2,.9,.3,1) both;
 }
 @keyframes cleaveIn { from { opacity: 0; transform: translate(-50%, -46%) scale(.97); } to { opacity: 1; transform: translate(-50%,-50%) scale(1); } }
+/* prev/next: a quick directional slide of the content only — no full cleave replay */
+.fracture-face:focus { outline: none; }
+.detail-pad.swap-next { animation: padNext .18s ease-out both; }
+.detail-pad.swap-prev { animation: padPrev .18s ease-out both; }
+@keyframes padNext { from { opacity: 0; transform: translateX(22px); } to { opacity: 1; transform: none; } }
+@keyframes padPrev { from { opacity: 0; transform: translateX(-22px); } to { opacity: 1; transform: none; } }
 .obsidian-edge {
     height: 12px; background: linear-gradient(180deg, var(--slab), var(--slab-edge));
     position: sticky; top: 0; z-index: 3;
@@ -269,8 +281,14 @@ body {
 .detail-nav button {
     background: var(--ink); color: var(--pearl); border: 0; border-radius: 8px;
     padding: 6px 10px; cursor: pointer; font-size: 13px; font-family: var(--pixel);
+    display: inline-flex; align-items: center; gap: 6px; max-width: 150px;
 }
 .detail-nav button:disabled { opacity: .3; cursor: default; }
+.detail-nav .nav-name {
+    font-size: 11px; color: var(--lav);
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+@media (max-width: 560px) { .detail-nav .nav-name { display: none; } }
 
 .d-top { display: flex; gap: 22px; align-items: center; flex-wrap: wrap; padding-top: 20px; }
 .d-sprite-wrap { position: relative; width: 168px; height: 168px; flex-shrink: 0;
@@ -332,7 +350,12 @@ body {
 .stats .sl { font-size: 12px; color: #5b5666; text-transform: uppercase; letter-spacing: .04em; }
 .stats .sv { font-family: var(--pixel); font-size: 14px; text-align: right; color: var(--ink); }
 .bar { height: 12px; background: #e0dacb; border-radius: 6px; overflow: hidden; }
-.bar > i { display: block; height: 100%; border-radius: 6px; transition: width .5s ease; }
+.bar > i {
+    display: block; height: 100%; border-radius: 6px;
+    transform-origin: left center;
+    animation: barGrow .45s cubic-bezier(.2,.8,.3,1) both;
+}
+@keyframes barGrow { from { transform: scaleX(0); } }
 .bst-row { margin-top: 10px; font-family: var(--pixel); font-size: 16px; color: var(--ink); }
 .bst-row b { color: var(--teal); }
 
@@ -356,7 +379,8 @@ body {
 .evo-arrow .ea { font-size: 18px; line-height: 1; }
 
 /* learnsets */
-.moves { width: 100%; border-collapse: collapse; font-size: 13px; }
+.mv-scroll { overflow-x: auto; }
+.moves { width: 100%; min-width: 420px; border-collapse: collapse; font-size: 13px; }
 .moves th, .moves td { text-align: left; padding: 5px 8px; border-bottom: 1px solid #e3ddce; }
 .moves th { font-family: var(--pixel); font-size: 11px; text-transform: uppercase; color: #6b6675; letter-spacing: .04em; }
 .moves td.num, .moves th.num { text-align: right; font-variant-numeric: tabular-nums; }
@@ -368,7 +392,7 @@ details.moveset > summary { cursor: pointer; padding: 9px 12px; font-family: var
 details.moveset > summary::-webkit-details-marker { display: none; }
 details.moveset > summary::before { content: "▸ "; color: var(--lav); }
 details.moveset[open] > summary::before { content: "▾ "; }
-details.moveset .mv-body { padding: 0 8px 8px; max-height: 320px; overflow-y: auto; }
+details.moveset .mv-body { padding: 0 8px 8px; max-height: 320px; overflow: auto; }
 
 /* locations */
 .loc-chips { display: flex; flex-wrap: wrap; gap: 8px; }
@@ -411,7 +435,7 @@ details.moveset .mv-body { padding: 0 8px 8px; max-height: 320px; overflow-y: au
 
 /* ============================================================ Reduced motion */
 @media (prefers-reduced-motion: reduce) {
-    .cell, .sprite, #lantern, .fracture-face, .d-sprite, .evo-mon .es { transition: none !important; animation: none !important; }
+    .cell, .sprite, #lantern, .fracture-face, .d-sprite, .evo-mon .es, .detail-pad, .bar > i { transition: none !important; animation: none !important; }
     .cell.lit .sprite, .cell.incipient.lit, .d-sprite { animation: none !important; background-position: 0 0 !important; }
     #fracture { display: none; }
     .cell.lit { transform: none; }
@@ -521,6 +545,7 @@ async function init() {
         state.all = data.species || [];
         if (!state.all.length) throw new Error("empty dex");
         state.all.forEach((m, i) => { m._i = i; state.byId.set(m.slug, m); });
+        buildEvoMaps();
         applyFilters();
         buildGrid();
         $("#status").hidden = true;
@@ -695,10 +720,12 @@ function markDirty() { dirty = true; }
 
 function wireLantern() {
     const lantern = $("#lantern");
+    const dlg = $("#detail");
     const R = 150, RING = 190;
 
     // Mouse handling is always attached (a device can have both pointer types).
     window.addEventListener("mousemove", (e) => {
+        if (dlg.open) return;   // scene behind the cleave is frozen
         state.lantern.x = e.clientX + window.scrollX;
         state.lantern.y = e.clientY + window.scrollY;
         state.lantern.active = true;
@@ -743,9 +770,10 @@ function wireLantern() {
         markDirty();
     }
 
-    // rAF loop — only recompute lit cells when something changed.
+    // rAF loop — only recompute lit cells when something changed (and never
+    // while the detail is open; the backdrop is blurred over a frozen scene).
     function loop() {
-        if (dirty) { dirty = false; updateLit(); }
+        if (dirty && !dlg.open) { dirty = false; updateLit(); }
         requestAnimationFrame(loop);
     }
     requestAnimationFrame(loop);
@@ -809,25 +837,61 @@ function setKFocus(i) {
 
 /* ---------------------------------------------------------------- Cleave / detail */
 let shinyOn = false;
-function openBySlug(slug, animate=true) {
+
+/* Browsers throttle history.replaceState (~100 calls / 30s); rapid arrow-key
+ * browsing blows straight through that, so trail the hash behind navigation. */
+let hashTimer = 0;
+function setHash(slug) {
+    clearTimeout(hashTimer);
+    hashTimer = setTimeout(() => {
+        history.replaceState(null, "", slug ? "#" + encodeURIComponent(slug) : location.pathname + location.search);
+    }, 150);
+}
+
+function openBySlug(slug, animate=true, dir=0) {
     const m = state.byId.get(slug);
     if (!m) return;
     shinyOn = false;
-    if (animate && !state.reduced) {
+    const dlg = $("#detail");
+    const wasOpen = dlg.open;
+    if (animate && !state.reduced && !wasOpen) {
         const fr = $("#fracture"); fr.classList.remove("go"); void fr.offsetWidth; fr.classList.add("go");
     }
     renderDetail(m);
-    const dlg = $("#detail");
-    if (!dlg.open) dlg.showModal();
-    history.replaceState(null, "", "#" + slug);
-    dlg.scrollTop = 0;
-    const face = dlg.querySelector(".fracture-face"); if (face) face.scrollTop = 0;
+    if (!wasOpen) dlg.showModal();
+    document.body.classList.add("cleaved");
+    $("#lantern").classList.remove("on");
+    const face = dlg.querySelector(".fracture-face");
+    if (face) {
+        face.scrollTop = 0;
+        if (wasOpen) {
+            face.style.animation = "none";   // don't replay the cleave-in on prev/next
+            if (dir && !state.reduced) {
+                face.querySelector(".detail-pad").classList.add(dir > 0 ? "swap-next" : "swap-prev");
+            }
+        }
+        // Keep focus on the face so PgUp/PgDn/Space scroll it and key nav survives
+        // the innerHTML swap.
+        face.focus({ preventScroll: true });
+    }
+    setHash(slug);
+    preloadNeighbors(m);
 }
 
 function closeDetail() {
     const dlg = $("#detail");
-    if (dlg.open) dlg.close();
-    history.replaceState(null, "", location.pathname + location.search);
+    if (dlg.open) dlg.close();   // cleanup happens in the dialog's "close" handler
+}
+
+/* Warm the sprites you're about to browse to, so prev/next never flashes empty. */
+function preloadNeighbors(m) {
+    const i = state.view.findIndex(x => x.slug === m.slug);
+    const paths = [];
+    for (const n of [state.view[i-1], state.view[i+1]]) {
+        if (n && n.sprites && n.sprites.normal) paths.push(n.sprites.normal);
+    }
+    if (m.sprites && m.sprites.shiny) paths.push(m.sprites.shiny);
+    for (const p of paths) { const img = new Image(); img.src = spriteUrl(p); }
 }
 
 function renderDetail(m) {
@@ -870,11 +934,11 @@ function renderDetail(m) {
 
     const dlg = $("#detail");
     dlg.innerHTML = `
-    <div class="fracture-face" role="document">
+    <div class="fracture-face" role="document" tabindex="-1">
       <div class="obsidian-edge"></div>
       <div class="detail-nav">
-        <button id="btnPrev" ${prev?'':'disabled'} title="Previous">◄</button>
-        <button id="btnNext" ${next?'':'disabled'} title="Next">►</button>
+        <button id="btnPrev" ${prev?'':'disabled'} title="Previous${prev?': '+esc(prev.displayName):''}">◄${prev?`<span class="nav-name">${esc(prev.displayName)}</span>`:''}</button>
+        <button id="btnNext" ${next?'':'disabled'} title="Next${next?': '+esc(next.displayName):''}">${next?`<span class="nav-name">${esc(next.displayName)}</span>`:''}►</button>
       </div>
       <button class="detail-close" id="btnClose" aria-label="Close">✕</button>
       <div class="detail-pad">
@@ -924,10 +988,20 @@ function renderDetail(m) {
         setDetailSprite(m);
     });
     $("#btnClose").addEventListener("click", closeDetail);
-    if (prev) $("#btnPrev").addEventListener("click", () => openBySlug(prev.slug, false));
-    if (next) $("#btnNext").addEventListener("click", () => openBySlug(next.slug, false));
+    if (prev) $("#btnPrev").addEventListener("click", () => openBySlug(prev.slug, false, -1));
+    if (next) $("#btnNext").addEventListener("click", () => openBySlug(next.slug, false, 1));
     dlg.querySelectorAll(".evo-mon[data-slug]").forEach(el =>
         el.addEventListener("click", () => openBySlug(el.dataset.slug, false)));
+    // Collapsed movesets fill in on first open (see renderLearnsets).
+    dlg.querySelectorAll("details.moveset").forEach(d => {
+        d.addEventListener("toggle", () => {
+            if (!d.open || d.dataset.filled) return;
+            d.dataset.filled = "1";
+            const arr = (m.learnset || {})[d.dataset.set] || [];
+            d.querySelector(".mv-body").innerHTML =
+                moveTable(arr.map(mv => moveRow({ ...mv, level: null })).join(""), false);
+        });
+    });
 }
 
 function setDetailSprite(m) {
@@ -937,17 +1011,21 @@ function setDetailSprite(m) {
     el.setAttribute("aria-label", m.displayName + (shinyOn ? " (shiny)" : ""));
 }
 
-function renderEvolution(m) {
-    const fam = m.family || [];
-    if (fam.length <= 1 && !(m.evolutions||[]).length) return `<div class="no-loc">Does not evolve.</div>`;
-    // Lookups for method labels. `edgeMethod` = direct from>to edge; `intoMethod` = any
-    // incoming edge to a species, so branched lines (e.g. Clamperl → Fangtide OR Silktide)
-    // still label each member by how it is actually obtained even when rendered linearly.
-    const edgeMethod = {}, intoMethod = {};
+/* Lookups for method labels, built once after load. `edgeMethod` = direct from>to
+ * edge; `intoMethod` = any incoming edge to a species, so branched lines (e.g.
+ * Clamperl → Fangtide OR Silktide) still label each member by how it is actually
+ * obtained even when rendered linearly. */
+const edgeMethod = {}, intoMethod = {};
+function buildEvoMaps() {
     state.all.forEach(sp => (sp.evolutions||[]).forEach(e => {
         edgeMethod[sp.slug + ">" + e.toSlug] = e.method;
         if (!(e.toSlug in intoMethod)) intoMethod[e.toSlug] = e.method;
     }));
+}
+
+function renderEvolution(m) {
+    const fam = m.family || [];
+    if (fam.length <= 1 && !(m.evolutions||[]).length) return `<div class="no-loc">Does not evolve.</div>`;
     let html = `<div class="evo-strip">`;
     fam.forEach((f, i) => {
         const sp = state.byId.get(f.slug) || f;
@@ -987,15 +1065,18 @@ function renderLearnsets(m) {
     const ls = m.learnset || {};
     const lu = (ls.levelUp||[]).map(moveRow).join("");
     let html = "";
-    html += `<div style="margin-bottom:6px">${ (ls.levelUp||[]).length ? moveTable(lu, true) : '<div class="no-loc">No level-up moves.</div>'}</div>`;
-    const coll = (title, arr) => {
+    html += `<div class="mv-scroll" style="margin-bottom:6px">${ (ls.levelUp||[]).length ? moveTable(lu, true) : '<div class="no-loc">No level-up moves.</div>'}</div>`;
+    // TM/Tutor/Egg tables are the bulk of the detail DOM (~50 rows on average) and
+    // start collapsed, so only the summary is rendered here; rows are built on
+    // first toggle in renderDetail. Keeps prev/next re-renders light.
+    const coll = (title, key) => {
+        const arr = ls[key];
         if (!arr || !arr.length) return "";
-        const rows = arr.map(mv => moveRow({ ...mv, level: null })).join("");
-        return `<details class="moveset"><summary>${title} (${arr.length})</summary><div class="mv-body">${moveTable(rows, false)}</div></details>`;
+        return `<details class="moveset" data-set="${key}"><summary>${title} (${arr.length})</summary><div class="mv-body"></div></details>`;
     };
-    html += coll("TM Moves", ls.tm);
-    html += coll("Tutor Moves", ls.tutor);
-    html += coll("Egg Moves", ls.egg);
+    html += coll("TM Moves", "tm");
+    html += coll("Tutor Moves", "tutor");
+    html += coll("Egg Moves", "egg");
     return html;
 }
 
@@ -1016,14 +1097,20 @@ function renderLocations(m) {
 }
 
 /* ---------------------------------------------------------------- Detail keyboard + hash */
-$("#detail").addEventListener("keydown", (e) => {
+/* Document-level: re-rendering the detail destroys the focused element and drops
+ * focus to <body>, so a listener on #detail goes deaf after the first nav. */
+document.addEventListener("keydown", (e) => {
+    if (!$("#detail").open) return;
     if (e.key === "Escape") { e.preventDefault(); closeDetail(); }
     else if (e.key === "ArrowLeft") { const b = $("#btnPrev"); if (b && !b.disabled) b.click(); }
     else if (e.key === "ArrowRight") { const b = $("#btnNext"); if (b && !b.disabled) b.click(); }
 });
 $("#detail").addEventListener("click", (e) => { if (e.target.id === "detail") closeDetail(); });
 $("#detail").addEventListener("close", () => {
-    if (location.hash) history.replaceState(null, "", location.pathname + location.search);
+    document.body.classList.remove("cleaved");
+    setHash(null);
+    if (state.lantern.active) $("#lantern").classList.add("on");
+    markDirty();   // relight cells around wherever the lantern was left
 });
 window.addEventListener("hashchange", () => {
     const slug = decodeURIComponent(location.hash.slice(1));
