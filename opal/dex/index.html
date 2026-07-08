@@ -160,7 +160,8 @@ body {
     contain: layout paint style;
     content-visibility: auto;
     contain-intrinsic-size: 120px;
-    transition: transform .18s ease, box-shadow .25s ease, opacity .3s ease, filter .3s ease;
+    /* transition only compositor-friendly properties; shadow/filter snap */
+    transition: transform .18s ease, opacity .3s ease;
 }
 .cell .no {
     position: absolute; top: 4px; left: 6px; font-family: var(--pixel);
@@ -179,8 +180,12 @@ body {
     image-rendering: pixelated;
     /* dormant look: a fleck in the glass */
     opacity: .2; filter: grayscale(1) brightness(.55) contrast(.9);
-    transition: opacity .3s ease, filter .3s ease, transform .18s ease;
+    /* filter interpolation repaints are expensive across hundreds of cells
+       under the lantern — fade opacity only, let filter snap */
+    transition: opacity .25s ease, transform .18s ease;
 }
+/* single-frame sprite (64×64): no second frame to animate, no vertical squash */
+.one { background-size: 100% 100% !important; background-position: 0 0 !important; animation: none !important; }
 
 /* Lit / half-lit driven by the lantern */
 .cell.half .sprite { opacity: .5; filter: grayscale(.55) brightness(.8); }
@@ -245,13 +250,13 @@ body.cleaved .cell.incipient.lit { animation-play-state: paused; }
 /* ============================================================ Detail (cleave) */
 #detail {
     position: fixed; inset: 0; margin: 0; padding: 0; border: 0; width: 100%; height: 100%;
+    max-width: none; max-height: none;   /* UA gives <dialog> calc(100% - 38px) */
     background: transparent; z-index: 90; overflow: hidden;
 }
 #detail::backdrop { background: rgba(6,5,10,.72); backdrop-filter: blur(3px); }
 .fracture-face {
     position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
-    width: min(960px, 94vw); max-height: 92vh; overflow-y: auto;
-    overscroll-behavior: contain;
+    width: min(960px, 94vw);
     background:
         linear-gradient(180deg, var(--pearl) 0%, var(--pearl-2) 100%);
     color: var(--ink); border-radius: 4px;
@@ -259,9 +264,12 @@ body.cleaved .cell.incipient.lit { animation-play-state: paused; }
     clip-path: polygon(0 10px, 8% 0, 22% 7px, 40% 0, 61% 6px, 80% 0, 93% 7px, 100% 0, 100% 100%, 0 100%);
     animation: cleaveIn .32s cubic-bezier(.2,.9,.3,1) both;
 }
+/* Scrolling lives on an un-clipped inner element: scrolling the clip-path'd
+   face itself defeats composited scrolling and repaints every frame. */
+.face-scroll { max-height: 92vh; overflow-y: auto; overscroll-behavior: contain; }
+.face-scroll:focus { outline: none; }
 @keyframes cleaveIn { from { opacity: 0; transform: translate(-50%, -46%) scale(.97); } to { opacity: 1; transform: translate(-50%,-50%) scale(1); } }
 /* prev/next: a quick directional slide of the content only — no full cleave replay */
-.fracture-face:focus { outline: none; }
 .detail-pad.swap-next { animation: padNext .18s ease-out both; }
 .detail-pad.swap-prev { animation: padPrev .18s ease-out both; }
 @keyframes padNext { from { opacity: 0; transform: translateX(22px); } to { opacity: 1; transform: none; } }
@@ -276,12 +284,14 @@ body.cleaved .cell.incipient.lit { animation-play-state: paused; }
     position: absolute; top: 16px; right: 14px; z-index: 5;
     background: var(--ink); color: var(--pearl); border: 0; width: 34px; height: 34px;
     border-radius: 50%; cursor: pointer; font-size: 18px; line-height: 1;
+    box-shadow: 0 2px 10px rgba(0,0,0,.35);
 }
 .detail-nav { position: absolute; top: 16px; left: 14px; display: flex; gap: 8px; z-index: 5; }
 .detail-nav button {
     background: var(--ink); color: var(--pearl); border: 0; border-radius: 8px;
     padding: 6px 10px; cursor: pointer; font-size: 13px; font-family: var(--pixel);
     display: inline-flex; align-items: center; gap: 6px; max-width: 150px;
+    box-shadow: 0 2px 10px rgba(0,0,0,.35);
 }
 .detail-nav button:disabled { opacity: .3; cursor: default; }
 .detail-nav .nav-name {
@@ -351,11 +361,10 @@ body.cleaved .cell.incipient.lit { animation-play-state: paused; }
 .stats .sv { font-family: var(--pixel); font-size: 14px; text-align: right; color: var(--ink); }
 .bar { height: 12px; background: #e0dacb; border-radius: 6px; overflow: hidden; }
 .bar > i {
-    display: block; height: 100%; border-radius: 6px;
-    transform-origin: left center;
-    animation: barGrow .45s cubic-bezier(.2,.8,.3,1) both;
+    display: block; height: 100%; border-radius: 6px; width: 0;
+    /* bars persist across mons and morph to the next one's values */
+    transition: width .35s cubic-bezier(.2,.8,.3,1), background-color .35s ease;
 }
-@keyframes barGrow { from { transform: scaleX(0); } }
 .bst-row { margin-top: 10px; font-family: var(--pixel); font-size: 16px; color: var(--ink); }
 .bst-row b { color: var(--teal); }
 
@@ -392,7 +401,7 @@ details.moveset > summary { cursor: pointer; padding: 9px 12px; font-family: var
 details.moveset > summary::-webkit-details-marker { display: none; }
 details.moveset > summary::before { content: "▸ "; color: var(--lav); }
 details.moveset[open] > summary::before { content: "▾ "; }
-details.moveset .mv-body { padding: 0 8px 8px; max-height: 320px; overflow: auto; }
+details.moveset .mv-body { padding: 0 8px 8px; max-height: 320px; overflow: auto; overscroll-behavior: contain; }
 
 /* locations */
 .loc-chips { display: flex; flex-wrap: wrap; gap: 8px; }
@@ -421,16 +430,19 @@ details.moveset .mv-body { padding: 0 8px 8px; max-height: 320px; overflow: auto
     body { flex-direction: column; }
     .sidebar { flex-direction: row; width: 100%; min-height: auto; position: static; }
     .tab { flex: 1; text-align: center; }
-    .slab { grid-template-columns: repeat(4, 1fr); }
+    /* minmax(0,…): a bare 1fr can't shrink below the cells' 120px
+       contain-intrinsic-size minimum, which pushed column 4 off-screen */
+    .slab { grid-template-columns: repeat(4, minmax(0, 1fr)); }
     .toolbar { top: 0; }
     .fracture-face { inset: 0; width: auto; height: auto; max-width: none; max-height: none;
         transform: none; border-radius: 0; clip-path: none; }
+    .face-scroll { max-height: none; height: 100%; }
     @keyframes cleaveIn { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: none; } }
     .fracture-face { animation: cleaveIn .3s ease both; }
     .d-top { justify-content: center; text-align: center; }
 }
 @media (max-width: 340px) {
-    .slab { grid-template-columns: repeat(3, 1fr); }
+    .slab { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 
 /* ============================================================ Reduced motion */
@@ -525,12 +537,36 @@ const state = {
     activeTypes: new Set(),
     lantern: { x: -9999, y: -9999, active: false, planted: false },
     kfocus: -1,
+    lastViewed: null,
     reduced: matchMedia("(prefers-reduced-motion: reduce)").matches,
     touch: matchMedia("(hover: none)").matches,
 };
 
 const $ = (s, r=document) => r.querySelector(s);
 const spriteUrl = (p) => p ? `${DATA_BASE}/${p}` : "";
+
+/* Most sprites are two stacked 64×64 frames (h = 2w), but some are a single
+ * 64×64 frame; stretching those to 200% mangles them. Detect once per URL. */
+const frameCache = new Map();   // url -> true if single-frame
+function detectFrames(url, cb) {
+    if (frameCache.has(url)) { if (cb) cb(frameCache.get(url)); return; }
+    const img = new Image();
+    img.onload = () => {
+        const single = img.naturalHeight < img.naturalWidth * 2;
+        frameCache.set(url, single);
+        if (cb) cb(single);
+    };
+    img.src = url;
+}
+function setSprite(el, url) {
+    if (!url) { el.style.backgroundImage = "none"; el.classList.remove("one"); return; }
+    el.style.backgroundImage = `url("${url}")`;
+    if (frameCache.has(url)) { el.classList.toggle("one", frameCache.get(url)); return; }
+    el.classList.remove("one");
+    detectFrames(url, single => {
+        if (el.style.backgroundImage.includes(url)) el.classList.toggle("one", single);
+    });
+}
 
 /* ---------------------------------------------------------------- Boot */
 async function init() {
@@ -694,7 +730,7 @@ function onIntersect(entries) {
             const cell = e.target;
             const spr = cell.querySelector(".sprite");
             if (cell.dataset.src && !spr.style.backgroundImage) {
-                spr.style.backgroundImage = `url("${cell.dataset.src}")`;
+                setSprite(spr, cell.dataset.src);
             }
             io.unobserve(cell);
         }
@@ -848,6 +884,7 @@ function setHash(slug) {
     }, 150);
 }
 
+let lastNavAt = 0;
 function openBySlug(slug, animate=true, dir=0) {
     const m = state.byId.get(slug);
     if (!m) return;
@@ -857,23 +894,24 @@ function openBySlug(slug, animate=true, dir=0) {
     if (animate && !state.reduced && !wasOpen) {
         const fr = $("#fracture"); fr.classList.remove("go"); void fr.offsetWidth; fr.classList.add("go");
     }
-    renderDetail(m);
-    if (!wasOpen) dlg.showModal();
-    document.body.classList.add("cleaved");
-    $("#lantern").classList.remove("on");
-    const face = dlg.querySelector(".fracture-face");
-    if (face) {
-        face.scrollTop = 0;
-        if (wasOpen) {
-            face.style.animation = "none";   // don't replay the cleave-in on prev/next
-            if (dir && !state.reduced) {
-                face.querySelector(".detail-pad").classList.add(dir > 0 ? "swap-next" : "swap-prev");
-            }
+    patchDetail(m);
+    if (!wasOpen) {
+        dlg.showModal();
+        document.body.classList.add("cleaved");
+        $("#lantern").classList.remove("on");
+        if (!state.reduced) {   // replay the cleave-in on each fresh open
+            D.face.style.animation = "none"; void D.face.offsetWidth; D.face.style.animation = "";
         }
-        // Keep focus on the face so PgUp/PgDn/Space scroll it and key nav survives
-        // the innerHTML swap.
-        face.focus({ preventScroll: true });
+        // Focus the scroller so PgUp/PgDn/Space scroll the detail.
+        D.scroll.focus({ preventScroll: true });
+    } else if (dir && !state.reduced && performance.now() - lastNavAt > 250) {
+        // Discrete prev/next gets a directional slide; held key-repeat stays steady.
+        D.pad.classList.remove("swap-next", "swap-prev"); void D.pad.offsetWidth;
+        D.pad.classList.add(dir > 0 ? "swap-next" : "swap-prev");
     }
+    if (dir) lastNavAt = performance.now();
+    D.scroll.scrollTop = 0;
+    state.lastViewed = slug;
     setHash(slug);
     preloadNeighbors(m);
 }
@@ -891,124 +929,166 @@ function preloadNeighbors(m) {
         if (n && n.sprites && n.sprites.normal) paths.push(n.sprites.normal);
     }
     if (m.sprites && m.sprites.shiny) paths.push(m.sprites.shiny);
-    for (const p of paths) { const img = new Image(); img.src = spriteUrl(p); }
+    for (const p of paths) detectFrames(spriteUrl(p));   // loads + caches frame layout
 }
 
-function renderDetail(m) {
-    const idxInView = state.view.findIndex(x => x.slug === m.slug);
-    const prev = idxInView > 0 ? state.view[idxInView-1] : null;
-    const next = idxInView >= 0 && idxInView < state.view.length-1 ? state.view[idxInView+1] : null;
+/* The detail is a persistent skeleton patched in place — rebuilding the whole
+ * dialog per navigation forced a full parse/layout/paint and destroyed the
+ * focused element. `D` caches every slot that changes between mons. */
+let D = null;
+let warmTimer = 0;
+const STAT_ROWS = [["HP","hp"],["Atk","atk"],["Def","def"],["SpA","spa"],["SpD","spd"],["Spe","spe"]];
+const DATA_KEYS = ["Catch Rate","EV Yield","Growth","Egg Groups","Gender","Egg Cycles","Base Friendship","Base EXP"];
 
-    const typeGems = m.types.map(t =>
+function ensureDetailSkeleton() {
+    if (D) return;
+    const dlg = $("#detail");
+    dlg.innerHTML = `
+    <div class="fracture-face" role="document">
+      <div class="detail-nav">
+        <button id="btnPrev" title="Previous">◄<span class="nav-name"></span></button>
+        <button id="btnNext" title="Next"><span class="nav-name"></span>►</button>
+      </div>
+      <button class="detail-close" id="btnClose" aria-label="Close">✕</button>
+      <div class="face-scroll" tabindex="-1">
+        <div class="obsidian-edge"></div>
+        <div class="detail-pad">
+          <div class="d-top">
+            <div class="d-sprite-wrap">
+              <div class="d-sprite" id="dSprite" role="img"></div>
+              <button class="shiny-toggle" id="shinyBtn" aria-pressed="false">✦ Shiny</button>
+            </div>
+            <div class="d-head">
+              <h2><span id="dName"></span><span class="badge-inc hidden" id="dInc">Incipient</span></h2>
+              <div class="dexno" id="dDexno"></div>
+              <div class="cat" id="dCat"></div>
+              <div class="chip-types"><div class="d-types" id="dTypes"></div></div>
+            </div>
+          </div>
+          <p class="d-flavor" id="dFlavor"></p>
+          <div class="d-measure"><div>Height <b id="dHeight"></b></div><div>Weight <b id="dWeight"></b></div></div>
+          <div class="section-title">Abilities</div>
+          <div class="abilities" id="dAbilities"></div>
+          <div class="section-title">Base Stats</div>
+          <div class="stats">${STAT_ROWS.map(([l,k]) =>
+            `<div class="sl">${l}</div><div class="bar"><i data-k="${k}"></i></div><div class="sv" data-k="${k}"></div>`).join("")}</div>
+          <div class="bst-row">BST <b id="dBst"></b></div>
+          <div class="section-title">Data</div>
+          <div class="datarow">${DATA_KEYS.map(k =>
+            `<div class="datacard"><div class="k">${k}</div><div class="v"></div></div>`).join("")}</div>
+          <div class="section-title">Evolution</div>
+          <div id="dEvo"></div>
+          <div class="section-title">Locations</div>
+          <div id="dLoc"></div>
+          <div class="section-title">Learnset</div>
+          <div id="dLearn"></div>
+        </div>
+      </div>
+    </div>`;
+    D = {
+        mon: null, prevSlug: null, nextSlug: null,
+        face: $(".fracture-face", dlg), scroll: $(".face-scroll", dlg), pad: $(".detail-pad", dlg),
+        btnPrev: $("#btnPrev", dlg), btnNext: $("#btnNext", dlg),
+        prevName: $("#btnPrev .nav-name", dlg), nextName: $("#btnNext .nav-name", dlg),
+        sprite: $("#dSprite", dlg), shinyBtn: $("#shinyBtn", dlg),
+        name: $("#dName", dlg), inc: $("#dInc", dlg), dexno: $("#dDexno", dlg), cat: $("#dCat", dlg),
+        types: $("#dTypes", dlg), flavor: $("#dFlavor", dlg),
+        height: $("#dHeight", dlg), weight: $("#dWeight", dlg),
+        abilities: $("#dAbilities", dlg), bst: $("#dBst", dlg),
+        bars: [...dlg.querySelectorAll(".stats i[data-k]")],
+        vals: [...dlg.querySelectorAll(".stats .sv[data-k]")],
+        cards: [...dlg.querySelectorAll(".datarow .v")],
+        evo: $("#dEvo", dlg), loc: $("#dLoc", dlg), learn: $("#dLearn", dlg),
+    };
+    D.btnPrev.addEventListener("click", () => { if (D.prevSlug) openBySlug(D.prevSlug, false, -1); });
+    D.btnNext.addEventListener("click", () => { if (D.nextSlug) openBySlug(D.nextSlug, false, 1); });
+    $("#btnClose", dlg).addEventListener("click", closeDetail);
+    D.shinyBtn.addEventListener("click", () => {
+        shinyOn = !shinyOn;
+        D.shinyBtn.classList.toggle("on", shinyOn);
+        D.shinyBtn.setAttribute("aria-pressed", String(shinyOn));
+        if (D.mon) setDetailSprite(D.mon);
+    });
+    D.evo.addEventListener("click", (e) => {
+        const el = e.target.closest(".evo-mon");
+        if (el && el.dataset.slug) openBySlug(el.dataset.slug, false);
+    });
+}
+
+function patchDetail(m) {
+    ensureDetailSkeleton();
+    D.mon = m;
+    const idx = state.view.findIndex(x => x.slug === m.slug);
+    const prev = idx > 0 ? state.view[idx-1] : null;
+    const next = idx >= 0 && idx < state.view.length-1 ? state.view[idx+1] : null;
+    D.prevSlug = prev ? prev.slug : null;
+    D.nextSlug = next ? next.slug : null;
+    D.btnPrev.disabled = !prev;
+    D.btnNext.disabled = !next;
+    D.prevName.textContent = prev ? prev.displayName : "";
+    D.nextName.textContent = next ? next.displayName : "";
+    D.btnPrev.title = prev ? `Previous: ${prev.displayName}` : "Previous";
+    D.btnNext.title = next ? `Next: ${next.displayName}` : "Next";
+
+    D.name.textContent = m.displayName;
+    D.inc.classList.toggle("hidden", !m.isIncipient);
+    D.dexno.textContent = (m.regionalDexNo ? "Senko №" + String(m.regionalDexNo).padStart(3,"0") : "Unlisted")
+        + " · Nat №" + (m.nationalDexNo || "—");
+    D.cat.textContent = m.category || "";
+    D.types.innerHTML = m.types.map(t =>
         `<div class="gem" style="--c:${TYPE_COLORS[t]||'#888'}" title="${t}"><span>${t.slice(0,3)}</span></div>`).join("");
+    D.flavor.textContent = m.dexEntry || "";
+    D.height.textContent = `${m.heightM} m`;
+    D.weight.textContent = `${m.weightKg} kg`;
 
-    const abilities = m.abilities.map(a =>
+    D.shinyBtn.classList.toggle("on", shinyOn);
+    D.shinyBtn.setAttribute("aria-pressed", String(shinyOn));
+    setDetailSprite(m);
+
+    D.abilities.innerHTML = m.abilities.map(a =>
         `<div class="ability"><div><span class="an">${esc(a.name)}</span>${a.isHidden?'<span class="hid">Hidden</span>':''}</div>
          <div class="ad">${esc(a.description||"")}</div></div>`).join("") || `<div class="ad">No abilities listed.</div>`;
 
-    const stat = (label, key) => {
-        const v = m.baseStats[key] ?? 0;
-        const pct = Math.min(100, v/255*100);
-        return `<div class="sl">${label}</div><div class="bar"><i style="width:${pct}%;background:${statColor(v)}"></i></div><div class="sv">${v}</div>`;
-    };
-    const stats = stat("HP","hp")+stat("Atk","atk")+stat("Def","def")+stat("SpA","spa")+stat("SpD","spd")+stat("Spe","spe");
+    STAT_ROWS.forEach(([,k], i) => {
+        const v = m.baseStats[k] ?? 0;
+        D.bars[i].style.width = Math.min(100, v/255*100) + "%";
+        D.bars[i].style.backgroundColor = statColor(v);
+        D.vals[i].textContent = v;
+    });
+    D.bst.textContent = m.bst;
 
     const ev = Object.entries(m.evYield||{}).map(([k,v]) => `${v} ${k.toUpperCase()}`).join(", ") || "None";
     const gender = m.genderRatio.genderless ? "Genderless"
         : `${(100-m.genderRatio.femalePercent).toFixed(m.genderRatio.femalePercent%1?1:0)}% ♂ / ${m.genderRatio.femalePercent}% ♀`;
+    [m.catchRate ?? "—", ev, m.growthRate || "—", (m.eggGroups||[]).join(", ") || "—",
+     gender, m.eggCycles ?? "—", m.baseFriendship ?? "—", m.baseExpYield ?? "—"
+    ].forEach((v, i) => { D.cards[i].textContent = String(v); });
 
-    const secondary = [
-        ["Catch Rate", m.catchRate ?? "—"],
-        ["EV Yield", ev],
-        ["Growth", m.growthRate || "—"],
-        ["Egg Groups", (m.eggGroups||[]).join(", ") || "—"],
-        ["Gender", gender],
-        ["Egg Cycles", m.eggCycles ?? "—"],
-        ["Base Friendship", m.baseFriendship ?? "—"],
-        ["Base EXP", m.baseExpYield ?? "—"],
-    ].map(([k,v]) => `<div class="datacard"><div class="k">${k}</div><div class="v">${esc(String(v))}</div></div>`).join("");
+    D.evo.innerHTML = renderEvolution(m);
+    D.evo.querySelectorAll(".es[data-src]").forEach(es => setSprite(es, es.dataset.src));
+    D.loc.innerHTML = renderLocations(m);
 
-    const evo = renderEvolution(m);
-    const learn = renderLearnsets(m);
-    const loc = renderLocations(m);
+    D.learn.innerHTML = renderLearnsets(m);
+    D.learn.querySelectorAll("details.moveset").forEach(d =>
+        d.addEventListener("toggle", () => { if (d.open) fillMoveset(d); }));
+    // Pre-build collapsed movesets once browsing pauses so toggling is instant.
+    clearTimeout(warmTimer);
+    warmTimer = setTimeout(() => {
+        if (D) D.learn.querySelectorAll("details.moveset").forEach(fillMoveset);
+    }, 300);
+}
 
-    const dlg = $("#detail");
-    dlg.innerHTML = `
-    <div class="fracture-face" role="document" tabindex="-1">
-      <div class="obsidian-edge"></div>
-      <div class="detail-nav">
-        <button id="btnPrev" ${prev?'':'disabled'} title="Previous${prev?': '+esc(prev.displayName):''}">◄${prev?`<span class="nav-name">${esc(prev.displayName)}</span>`:''}</button>
-        <button id="btnNext" ${next?'':'disabled'} title="Next${next?': '+esc(next.displayName):''}">${next?`<span class="nav-name">${esc(next.displayName)}</span>`:''}►</button>
-      </div>
-      <button class="detail-close" id="btnClose" aria-label="Close">✕</button>
-      <div class="detail-pad">
-        <div class="d-top">
-          <div class="d-sprite-wrap">
-            <div class="d-sprite" id="dSprite" role="img" aria-label="${esc(m.displayName)}${''}"></div>
-            <button class="shiny-toggle" id="shinyBtn" aria-pressed="false">✦ Shiny</button>
-          </div>
-          <div class="d-head">
-            <h2>${esc(m.displayName)}${m.isIncipient?'<span class="badge-inc">Incipient</span>':''}</h2>
-            <div class="dexno">${m.regionalDexNo?('Senko №'+String(m.regionalDexNo).padStart(3,"0")):'Unlisted'} · Nat №${m.nationalDexNo||'—'}</div>
-            <div class="cat">${esc(m.category||"")}</div>
-            <div class="chip-types"><div class="d-types">${typeGems}</div></div>
-          </div>
-        </div>
-
-        <p class="d-flavor">${esc(m.dexEntry||"")}</p>
-        <div class="d-measure"><div>Height <b>${m.heightM} m</b></div><div>Weight <b>${m.weightKg} kg</b></div></div>
-
-        <div class="section-title">Abilities</div>
-        <div class="abilities">${abilities}</div>
-
-        <div class="section-title">Base Stats</div>
-        <div class="stats">${stats}</div>
-        <div class="bst-row">BST <b>${m.bst}</b></div>
-
-        <div class="section-title">Data</div>
-        <div class="datarow">${secondary}</div>
-
-        <div class="section-title">Evolution</div>
-        ${evo}
-
-        <div class="section-title">Locations</div>
-        ${loc}
-
-        <div class="section-title">Learnset</div>
-        ${learn}
-      </div>
-    </div>`;
-
-    // wire sprite + shiny
-    setDetailSprite(m);
-    $("#shinyBtn").addEventListener("click", () => {
-        shinyOn = !shinyOn;
-        $("#shinyBtn").classList.toggle("on", shinyOn);
-        $("#shinyBtn").setAttribute("aria-pressed", String(shinyOn));
-        setDetailSprite(m);
-    });
-    $("#btnClose").addEventListener("click", closeDetail);
-    if (prev) $("#btnPrev").addEventListener("click", () => openBySlug(prev.slug, false, -1));
-    if (next) $("#btnNext").addEventListener("click", () => openBySlug(next.slug, false, 1));
-    dlg.querySelectorAll(".evo-mon[data-slug]").forEach(el =>
-        el.addEventListener("click", () => openBySlug(el.dataset.slug, false)));
-    // Collapsed movesets fill in on first open (see renderLearnsets).
-    dlg.querySelectorAll("details.moveset").forEach(d => {
-        d.addEventListener("toggle", () => {
-            if (!d.open || d.dataset.filled) return;
-            d.dataset.filled = "1";
-            const arr = (m.learnset || {})[d.dataset.set] || [];
-            d.querySelector(".mv-body").innerHTML =
-                moveTable(arr.map(mv => moveRow({ ...mv, level: null })).join(""), false);
-        });
-    });
+function fillMoveset(d) {
+    if (d.dataset.filled || !D.mon) return;
+    d.dataset.filled = "1";
+    const arr = (D.mon.learnset || {})[d.dataset.set] || [];
+    $(".mv-body", d).innerHTML = moveTable(arr.map(mv => moveRow({ ...mv, level: null })).join(""), false);
 }
 
 function setDetailSprite(m) {
-    const el = $("#dSprite"); if (!el) return;
     const path = shinyOn ? (m.sprites && m.sprites.shiny) : (m.sprites && m.sprites.normal);
-    el.style.backgroundImage = path ? `url("${spriteUrl(path)}")` : "none";
-    el.setAttribute("aria-label", m.displayName + (shinyOn ? " (shiny)" : ""));
+    setSprite(D.sprite, path ? spriteUrl(path) : "");
+    D.sprite.setAttribute("aria-label", m.displayName + (shinyOn ? " (shiny)" : ""));
 }
 
 /* Lookups for method labels, built once after load. `edgeMethod` = direct from>to
@@ -1031,7 +1111,7 @@ function renderEvolution(m) {
         const sp = state.byId.get(f.slug) || f;
         const spr = sp.sprites && sp.sprites.normal ? spriteUrl(sp.sprites.normal) : "";
         html += `<div class="evo-mon ${f.slug===m.slug?'current':''}" data-slug="${f.slug}" title="${esc(f.name)}">
-                   <div class="es" style="background-image:url('${spr}')"></div>
+                   <div class="es" data-src="${spr}"></div>
                    <div class="en">${esc(f.name)}</div></div>`;
         if (i < fam.length-1) {
             const next = fam[i+1].slug;
@@ -1067,8 +1147,8 @@ function renderLearnsets(m) {
     let html = "";
     html += `<div class="mv-scroll" style="margin-bottom:6px">${ (ls.levelUp||[]).length ? moveTable(lu, true) : '<div class="no-loc">No level-up moves.</div>'}</div>`;
     // TM/Tutor/Egg tables are the bulk of the detail DOM (~50 rows on average) and
-    // start collapsed, so only the summary is rendered here; rows are built on
-    // first toggle in renderDetail. Keeps prev/next re-renders light.
+    // start collapsed, so only the summary is rendered here; rows are built by
+    // fillMoveset on toggle or idle pre-warm. Keeps prev/next patches light.
     const coll = (title, key) => {
         const arr = ls[key];
         if (!arr || !arr.length) return "";
@@ -1111,6 +1191,10 @@ $("#detail").addEventListener("close", () => {
     setHash(null);
     if (state.lantern.active) $("#lantern").classList.add("on");
     markDirty();   // relight cells around wherever the lantern was left
+    // Land back on the mon you were viewing: focus its cell and light it.
+    // rAF so this wins over the dialog's native focus restoration.
+    const i = state.view.findIndex(x => x.slug === state.lastViewed);
+    if (i >= 0) requestAnimationFrame(() => setKFocus(i));
 });
 window.addEventListener("hashchange", () => {
     const slug = decodeURIComponent(location.hash.slice(1));
