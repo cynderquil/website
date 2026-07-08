@@ -84,8 +84,9 @@ body {
     position: sticky; top: 0; z-index: 50;
     display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: center;
     padding: 12px 20px;
-    background: linear-gradient(180deg, rgba(14,12,22,.97), rgba(14,12,22,.82));
-    backdrop-filter: blur(6px);
+    /* near-opaque gradient, no backdrop-filter: blurring the grid under a
+       sticky bar re-blurs every scrolled frame and visibly janks scrolling */
+    background: linear-gradient(180deg, rgba(14,12,22,.98), rgba(14,12,22,.9));
     border-bottom: 1px solid var(--slab-edge);
 }
 .toolbar input[type="search"], .toolbar select {
@@ -253,7 +254,7 @@ body.cleaved .cell.incipient.lit { animation-play-state: paused; }
     max-width: none; max-height: none;   /* UA gives <dialog> calc(100% - 38px) */
     background: transparent; z-index: 90; overflow: hidden;
 }
-#detail::backdrop { background: rgba(6,5,10,.72); backdrop-filter: blur(3px); }
+#detail::backdrop { background: rgba(6,5,10,.82); }   /* no blur: GPU-costly on large desktop viewports */
 .fracture-face {
     position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
     width: min(960px, 94vw);
@@ -261,7 +262,9 @@ body.cleaved .cell.incipient.lit { animation-play-state: paused; }
         linear-gradient(180deg, var(--pearl) 0%, var(--pearl-2) 100%);
     color: var(--ink); border-radius: 4px;
     box-shadow: 0 30px 80px rgba(0,0,0,.6);
-    clip-path: polygon(0 10px, 8% 0, 22% 7px, 40% 0, 61% 6px, 80% 0, 93% 7px, 100% 0, 100% 100%, 0 100%);
+    /* NO clip-path here: a polygon clip on the scroller's ancestor forces
+       main-thread scrolling (repaint every frame). The cleaved-top look is
+       carried by the jagged .obsidian-edge instead. */
     animation: cleaveIn .32s cubic-bezier(.2,.9,.3,1) both;
 }
 /* Scrolling lives on an un-clipped inner element: scrolling the clip-path'd
@@ -269,9 +272,10 @@ body.cleaved .cell.incipient.lit { animation-play-state: paused; }
 .face-scroll { max-height: 92vh; overflow-y: auto; overscroll-behavior: contain; }
 .face-scroll:focus { outline: none; }
 @keyframes cleaveIn { from { opacity: 0; transform: translate(-50%, -46%) scale(.97); } to { opacity: 1; transform: translate(-50%,-50%) scale(1); } }
-/* prev/next: a quick directional slide of the content only — no full cleave replay */
-.detail-pad.swap-next { animation: padNext .18s ease-out both; }
-.detail-pad.swap-prev { animation: padPrev .18s ease-out both; }
+/* prev/next: a quick directional slide of the header only — animating the whole
+   pad rasterizes a multi-thousand-pixel compositor layer and visibly hitches */
+.d-top.swap-next { animation: padNext .18s ease-out both; }
+.d-top.swap-prev { animation: padPrev .18s ease-out both; }
 @keyframes padNext { from { opacity: 0; transform: translateX(22px); } to { opacity: 1; transform: none; } }
 @keyframes padPrev { from { opacity: 0; transform: translateX(-22px); } to { opacity: 1; transform: none; } }
 .obsidian-edge {
@@ -361,9 +365,11 @@ body.cleaved .cell.incipient.lit { animation-play-state: paused; }
 .stats .sv { font-family: var(--pixel); font-size: 14px; text-align: right; color: var(--ink); }
 .bar { height: 12px; background: #e0dacb; border-radius: 6px; overflow: hidden; }
 .bar > i {
-    display: block; height: 100%; border-radius: 6px; width: 0;
-    /* bars persist across mons and morph to the next one's values */
-    transition: width .35s cubic-bezier(.2,.8,.3,1), background-color .35s ease;
+    display: block; height: 100%; border-radius: 6px; width: 100%;
+    /* bars persist across mons and morph to the next one's values;
+       scaleX stays on the compositor — a width transition relayouts every frame */
+    transform: scaleX(0); transform-origin: left center; will-change: transform;
+    transition: transform .35s cubic-bezier(.2,.8,.3,1);
 }
 .bst-row { margin-top: 10px; font-family: var(--pixel); font-size: 16px; color: var(--ink); }
 .bst-row b { color: var(--teal); }
@@ -447,7 +453,7 @@ details.moveset .mv-body { padding: 0 8px 8px; max-height: 320px; overflow: auto
 
 /* ============================================================ Reduced motion */
 @media (prefers-reduced-motion: reduce) {
-    .cell, .sprite, #lantern, .fracture-face, .d-sprite, .evo-mon .es, .detail-pad, .bar > i { transition: none !important; animation: none !important; }
+    .cell, .sprite, #lantern, .fracture-face, .d-sprite, .evo-mon .es, .d-top, .bar > i { transition: none !important; animation: none !important; }
     .cell.lit .sprite, .cell.incipient.lit, .d-sprite { animation: none !important; background-position: 0 0 !important; }
     #fracture { display: none; }
     .cell.lit { transform: none; }
@@ -672,12 +678,22 @@ function refresh() {
     const slab = $("#slab");
     state.view.forEach((m, idx) => {
         const cell = state.byIdx.get(m.slug);
-        if (cell) { cell.style.order = idx; cell.classList.remove("sunk"); }
+        if (cell) {
+            cell.style.order = idx; cell.classList.remove("sunk");
+            // Filtering can pull never-seen cells to the front faster than the
+            // IntersectionObserver reacts — load the first screens' sprites now.
+            if (idx < 60 && cell.dataset.src) {
+                const spr = cell.querySelector(".sprite");
+                if (!spr.style.backgroundImage) setSprite(spr, cell.dataset.src);
+            }
+        }
     });
     state.all.forEach(m => {
         if (!passedSet.has(m.slug)) {
             const cell = state.byIdx.get(m.slug);
-            if (cell) cell.classList.add("sunk");
+            // Order sunk cells after every match (they default to order 0,
+            // which scattered them among the first results when filtering).
+            if (cell) { cell.classList.add("sunk"); cell.style.order = state.view.length + m._i; }
         }
     });
     $("#countPill").textContent = `${state.view.length} / ${state.all.length}`;
@@ -906,8 +922,8 @@ function openBySlug(slug, animate=true, dir=0) {
         D.scroll.focus({ preventScroll: true });
     } else if (dir && !state.reduced && performance.now() - lastNavAt > 250) {
         // Discrete prev/next gets a directional slide; held key-repeat stays steady.
-        D.pad.classList.remove("swap-next", "swap-prev"); void D.pad.offsetWidth;
-        D.pad.classList.add(dir > 0 ? "swap-next" : "swap-prev");
+        D.dtop.classList.remove("swap-next", "swap-prev"); void D.dtop.offsetWidth;
+        D.dtop.classList.add(dir > 0 ? "swap-next" : "swap-prev");
     }
     if (dir) lastNavAt = performance.now();
     D.scroll.scrollTop = 0;
@@ -988,6 +1004,7 @@ function ensureDetailSkeleton() {
     D = {
         mon: null, prevSlug: null, nextSlug: null,
         face: $(".fracture-face", dlg), scroll: $(".face-scroll", dlg), pad: $(".detail-pad", dlg),
+        dtop: $(".d-top", dlg),
         btnPrev: $("#btnPrev", dlg), btnNext: $("#btnNext", dlg),
         prevName: $("#btnPrev .nav-name", dlg), nextName: $("#btnNext .nav-name", dlg),
         sprite: $("#dSprite", dlg), shinyBtn: $("#shinyBtn", dlg),
@@ -1012,6 +1029,12 @@ function ensureDetailSkeleton() {
     D.evo.addEventListener("click", (e) => {
         const el = e.target.closest(".evo-mon");
         if (el && el.dataset.slug) openBySlug(el.dataset.slug, false);
+    });
+    // Release compositor layers once entrance/slide animations finish — a
+    // filling animation keeps its element rasterized indefinitely.
+    D.face.addEventListener("animationend", (e) => {
+        if (e.target === D.face && e.animationName === "cleaveIn") D.face.style.animation = "none";
+        if (e.target === D.dtop) D.dtop.classList.remove("swap-next", "swap-prev");
     });
 }
 
@@ -1051,7 +1074,7 @@ function patchDetail(m) {
 
     STAT_ROWS.forEach(([,k], i) => {
         const v = m.baseStats[k] ?? 0;
-        D.bars[i].style.width = Math.min(100, v/255*100) + "%";
+        D.bars[i].style.transform = `scaleX(${Math.min(1, v/255)})`;
         D.bars[i].style.backgroundColor = statColor(v);
         D.vals[i].textContent = v;
     });
